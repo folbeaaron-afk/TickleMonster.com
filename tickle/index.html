@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>They’re Ticklish · Tickle Monster</title>
+<meta name="description" content="Go ahead. They’re ticklish.">
+<meta name="theme-color" content="#0b0908">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Click on this person’s stomach.">
+<meta property="og:description" content="Go ahead. They’re ticklish.">
+<meta property="og:image" content="assets/og.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%230b0908'/%3E%3Cpath d='M8 30 C9 18 10 10 12 4 M14 30 C15 16 16 8 17 2 M20 30 C20 18 21 11 22 6' stroke='%23ddd8cc' stroke-width='2.4' fill='none' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IM+Fell+English+SC&family=Special+Elite&display=swap">
+<link rel="stylesheet" href="tickle.css">
+<link rel="modulepreload" href="js/main.js">
+</head>
+<body class="tm-page">
+<main id="tm" class="tm" data-phase="idle" data-stage="0" data-motion="full">
+
+  <header class="tm-top">
+    <p class="tm-headline" id="tm-headline">GO AHEAD. THEY’RE TICKLISH.</p>
+    <p class="tm-sub" id="tm-sub">(sound on)</p>
+  </header>
+
+  <div class="tm-frame" id="tm-frame">
+    <svg id="tm-scene" class="tm-scene" viewBox="0 0 600 900" preserveAspectRatio="xMidYMid slice"
+         xmlns="http://www.w3.org/2000/svg" aria-labelledby="tm-scene-title tm-scene-desc" role="group">
+      <title id="tm-scene-title">A person lying on a bed, seen from above</title>
+      <desc id="tm-scene-desc">They are fully clothed: a striped sweater, grey trousers, mismatched socks. They are looking up at you. Their neck, ribs, stomach and feet can be tickled.</desc>
+
+      <defs>
+        <!-- Hand-drawn "line boil": displacement re-seeded a few times a second -->
+        <filter id="tm-boil" filterUnits="userSpaceOnUse" x="0" y="0" width="600" height="900">
+          <feTurbulence id="tm-boil-noise" type="fractalNoise" baseFrequency="0.032" numOctaves="2" seed="1" result="n"/>
+          <feDisplacementMap id="tm-boil-map" in="SourceGraphic" in2="n" scale="2.2" xChannelSelector="R" yChannelSelector="G"/>
+        </filter>
+        <filter id="tm-handfx" filterUnits="userSpaceOnUse" x="0" y="0" width="600" height="900">
+          <feTurbulence id="tm-hand-noise" type="fractalNoise" baseFrequency="0.05" numOctaves="1" seed="3" result="n"/>
+          <feDisplacementMap id="tm-hand-map" in="SourceGraphic" in2="n" scale="2.6" xChannelSelector="R" yChannelSelector="G" result="d"/>
+          <feGaussianBlur in="d" stdDeviation="6" result="b"/>
+          <feOffset in="b" dx="8" dy="13" result="o"/>
+          <feColorMatrix in="o" type="matrix" values="0 0 0 0 0.04  0 0 0 0 0.03  0 0 0 0 0.02  0 0 0 0.5 0" result="s"/>
+          <feMerge><feMergeNode in="s"/><feMergeNode in="d"/></feMerge>
+        </filter>
+        <filter id="tm-soft" filterUnits="userSpaceOnUse" x="0" y="0" width="600" height="900">
+          <feGaussianBlur stdDeviation="11"/>
+        </filter>
+
+        <pattern id="tm-stripes" patternUnits="userSpaceOnUse" width="60" height="26" patternTransform="rotate(-2.5)">
+          <rect width="60" height="26" fill="#7a6835"/>
+          <rect y="12" width="60" height="9" fill="#584a29"/>
+          <rect y="22" width="60" height="2.2" fill="#3c5653"/>
+        </pattern>
+        <pattern id="tm-boards" patternUnits="userSpaceOnUse" width="90" height="900">
+          <rect width="90" height="900" fill="#1d1713"/>
+          <rect x="88" width="2" height="900" fill="#0f0c0a"/>
+          <path d="M20 0 C24 200 16 420 22 900 M58 0 C54 260 62 520 56 900" stroke="#251d18" stroke-width="3" fill="none"/>
+        </pattern>
+        <linearGradient id="tm-sheet" x1="0" y1="0" x2="0.15" y2="1">
+          <stop offset="0" stop-color="#d4cbb1"/>
+          <stop offset="0.6" stop-color="#c3b898"/>
+          <stop offset="1" stop-color="#a99d7c"/>
+        </linearGradient>
+        <linearGradient id="tm-torso-shade" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" stop-color="#120d08" stop-opacity="0.55"/>
+          <stop offset="0.22" stop-color="#120d08" stop-opacity="0"/>
+          <stop offset="0.78" stop-color="#120d08" stop-opacity="0"/>
+          <stop offset="1" stop-color="#120d08" stop-opacity="0.6"/>
+        </linearGradient>
+        <linearGradient id="tm-leg-shade" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" stop-color="#0b0e12" stop-opacity="0.5"/>
+          <stop offset="0.5" stop-color="#0b0e12" stop-opacity="0"/>
+          <stop offset="1" stop-color="#0b0e12" stop-opacity="0.35"/>
+        </linearGradient>
+        <radialGradient id="tm-head-shade" cx="0.42" cy="0.38" r="0.7">
+          <stop offset="0.55" stop-color="#3a2418" stop-opacity="0"/>
+          <stop offset="1" stop-color="#3a2418" stop-opacity="0.45"/>
+        </radialGradient>
+        <radialGradient id="tm-flush" cx="0.5" cy="0.5" r="0.5">
+          <stop offset="0" stop-color="#c0524b" stop-opacity="0.75"/>
+          <stop offset="1" stop-color="#c0524b" stop-opacity="0"/>
+        </radialGradient>
+        <radialGradient id="tm-lamp" cx="0.46" cy="0.34" r="0.78">
+          <stop offset="0" stop-color="#fff3d0" stop-opacity="0.10"/>
+          <stop offset="0.45" stop-color="#000" stop-opacity="0"/>
+          <stop offset="1" stop-color="#050302" stop-opacity="0.72"/>
+        </radialGradient>
+
+        <clipPath id="tm-clip-eyeL"><path id="tm-clip-eyeL-path" d=""/></clipPath>
+        <clipPath id="tm-clip-eyeR"><path id="tm-clip-eyeR-path" d=""/></clipPath>
+        <clipPath id="tm-clip-mouth"><path id="tm-clip-mouth-path" d=""/></clipPath>
+
+        <!-- One arm, drawn once, mirrored for the other side -->
+        <g id="tm-arm-shape">
+          <path class="tm-sweater" d="M206 236 C188 270 178 330 172 400 C168 430 166 452 164 470 L196 474 C198 440 202 400 208 360 C214 320 224 284 240 256 Z"/>
+          <path d="M206 236 C188 270 178 330 172 400 C168 430 166 452 164 470 L176 471 C180 420 186 330 214 250 Z" fill="#120d08" opacity="0.35"/>
+          <path d="M184 330 Q192 336 204 332 M176 410 Q186 416 198 410" class="tm-fold"/>
+          <path d="M163 464 L197 469 L196 482 L161 477 Z" fill="#4a3e22" class="tm-ink"/>
+          <path class="tm-skin" d="M163 477 C157 492 158 512 166 522 C173 531 186 529 191 518 C196 506 197 492 196 482 Z"/>
+          <path d="M169 503 L170 520 M176 506 L178 525 M183 505 L185 522" class="tm-crease"/>
+        </g>
+        <g id="tm-leg-shape">
+          <path class="tm-trousers" d="M212 528 C212 600 222 690 234 790 L292 792 C294 700 298 620 300 540 Z"/>
+          <path d="M212 528 C212 600 222 690 234 790 L292 792 C294 700 298 620 300 540 Z" fill="url(#tm-leg-shade)"/>
+          <path d="M230 646 Q252 660 282 650 M238 676 Q256 682 276 676" class="tm-fold"/>
+          <path d="M262 560 C266 640 270 720 270 786" class="tm-seam"/>
+        </g>
+      </defs>
+
+      <!-- ROOM -->
+      <rect x="-200" y="-200" width="1000" height="1300" fill="url(#tm-boards)"/>
+      <g id="tm-bed">
+        <rect x="68" y="6" width="464" height="898" rx="6" fill="#3a2a1f" class="tm-ink"/>
+        <rect x="86" y="54" width="428" height="840" rx="20" fill="url(#tm-sheet)" class="tm-ink"/>
+        <g class="tm-wrinkle">
+          <path d="M110 300 C150 312 170 330 190 360"/>
+          <path d="M490 260 C460 280 440 300 424 340"/>
+          <path d="M120 600 C160 610 186 640 200 690"/>
+          <path d="M480 620 C450 640 430 670 418 720"/>
+          <path d="M160 820 C200 840 250 846 300 842"/>
+          <path d="M330 850 C380 844 420 830 460 812"/>
+          <path d="M100 470 C130 480 150 500 160 520"/>
+        </g>
+        <!-- folded blanket at the foot -->
+        <path d="M86 862 C200 852 400 852 514 862 L514 894 L86 894 Z" fill="#4f2727" class="tm-ink"/>
+        <path d="M86 872 C200 864 400 864 514 872" class="tm-fold" stroke="#2c1414"/>
+        <!-- headboard -->
+        <rect x="68" y="0" width="464" height="54" fill="#2a1e16" class="tm-ink"/>
+        <path d="M76 44 L524 44" stroke="#4b3627" stroke-width="2"/>
+        <!-- pillow -->
+        <path d="M176 74 C240 64 360 64 424 74 C440 98 442 186 426 212 C360 222 240 222 174 212 C158 186 160 98 176 74 Z" fill="#ded6c0" class="tm-ink"/>
+        <path d="M190 90 C230 100 250 96 280 86 M330 88 C360 98 390 100 412 92 M186 200 C220 192 248 196 262 206 M340 206 C360 196 392 194 414 200" class="tm-wrinkle-in"/>
+        <!-- a stain no one mentions -->
+        <ellipse cx="438" cy="560" rx="22" ry="14" fill="#8e7b52" opacity="0.22"/>
+        <!-- cast shadow of the body -->
+        <g filter="url(#tm-soft)" opacity="0.4" fill="#2b2014">
+          <ellipse cx="306" cy="160" rx="62" ry="70"/>
+          <ellipse cx="306" cy="360" rx="120" ry="140"/>
+          <ellipse cx="306" cy="660" rx="90" ry="170"/>
+          <ellipse cx="306" cy="830" rx="90" ry="34"/>
+        </g>
+      </g>
+
+      <!-- PERSON -->
+      <g id="tm-person" filter="url(#tm-boil)">
+        <g id="tm-body">
+
+          <g id="tm-legL">
+            <use href="#tm-leg-shape"/>
+            <g id="tm-footL">
+              <path class="tm-sock-a" d="M236 784 C228 806 226 830 236 852 C246 870 272 870 282 852 C292 830 292 806 288 784 Z"/>
+              <path d="M236 784 L288 784 L289 800 L235 800 Z" fill="#8e897d" class="tm-ink"/>
+              <path d="M236 838 C246 852 272 854 284 838 C286 846 284 852 282 856 C272 870 246 870 236 854 Z" fill="#7d786d"/>
+              <ellipse class="tm-hot" data-part="footL" cx="262" cy="826" rx="38" ry="44" tabindex="0" role="button" aria-label="Tickle their left foot"/>
+            </g>
+          </g>
+          <g id="tm-legR">
+            <use href="#tm-leg-shape" transform="matrix(-1 0 0 1 600 0)"/>
+            <g id="tm-footR">
+              <path class="tm-sock-b" d="M312 784 C308 806 308 830 318 852 C328 870 354 870 364 852 C374 830 372 806 364 784 Z"/>
+              <path d="M314 806 L368 806 M311 822 L371 822 M313 838 L369 838" stroke="#d8cdb6" stroke-width="5" opacity="0.8"/>
+              <path d="M312 784 L364 784 L366 798 L311 798 Z" fill="#6b3329" class="tm-ink"/>
+              <ellipse class="tm-hot" data-part="footR" cx="340" cy="826" rx="38" ry="44" tabindex="0" role="button" aria-label="Tickle their right foot"/>
+            </g>
+          </g>
+
+          <!-- trousers / hips -->
+          <path class="tm-trousers" d="M210 466 L390 466 C396 500 396 524 390 548 C360 556 330 552 300 546 C270 552 240 556 210 548 C204 524 204 500 210 466 Z"/>
+          <path d="M300 478 L300 540" class="tm-seam"/>
+          <path d="M210 486 L390 486" class="tm-seam" opacity="0.6"/>
+
+          <g id="tm-torso">
+            <g id="tm-armL"><use href="#tm-arm-shape"/></g>
+            <g id="tm-armR"><use href="#tm-arm-shape" transform="matrix(-1 0 0 1 600 0)"/></g>
+
+            <!-- neck -->
+            <path class="tm-skin" d="M280 196 L320 196 L324 242 L276 242 Z"/>
+            <path d="M282 216 Q300 226 318 216" class="tm-crease" opacity="0.5"/>
+            <path d="M280 196 L320 196 L322 214 C306 222 294 222 278 214 Z" fill="#5a3a2a" opacity="0.3"/>
+
+            <g id="tm-chest">
+              <path class="tm-sweater" d="M214 234 C240 220 270 226 300 228 C330 226 360 220 386 234 C402 260 404 300 398 340 C394 390 392 430 386 480 L214 480 C208 430 206 390 202 340 C196 300 198 260 214 234 Z"/>
+              <path d="M214 234 C240 220 270 226 300 228 C330 226 360 220 386 234 C402 260 404 300 398 340 C394 390 392 430 386 480 L214 480 C208 430 206 390 202 340 C196 300 198 260 214 234 Z" fill="url(#tm-torso-shade)"/>
+              <path d="M226 300 Q246 318 270 312 M330 312 Q354 318 374 300 M240 400 Q262 412 290 404 M312 410 Q340 414 362 398 M220 452 Q250 462 280 456" class="tm-fold"/>
+              <path d="M214 470 L386 470 L386 482 L214 482 Z" fill="#4a3e22" class="tm-ink"/>
+              <!-- crew neck collar -->
+              <path d="M268 230 C276 246 324 246 332 230 C326 222 274 222 268 230 Z" fill="#4a3e22" class="tm-ink"/>
+              <path d="M276 232 C284 241 316 241 324 232" class="tm-fold" stroke="#2c2412"/>
+
+              <ellipse class="tm-hot" data-part="ribsL" cx="246" cy="326" rx="40" ry="54" tabindex="0" role="button" aria-label="Tickle their ribs, left side"/>
+              <ellipse class="tm-hot" data-part="ribsR" cx="354" cy="326" rx="40" ry="54" tabindex="0" role="button" aria-label="Tickle their ribs, right side"/>
+              <ellipse class="tm-hot" data-part="stomach" cx="300" cy="424" rx="56" ry="44" tabindex="0" role="button" aria-label="Tickle their stomach"/>
+            </g>
+
+            <g id="tm-head">
+             <g transform="translate(300 214) scale(1.17) translate(-300 -214)">
+              <!-- hair spread on the pillow -->
+              <path class="tm-hair" d="M240 170 C226 132 232 92 262 76 C284 64 318 62 342 74 C370 90 378 130 362 172 C374 150 380 120 370 96 C388 118 386 160 368 186 L232 186 C216 160 214 118 230 96 C222 122 226 150 240 170 Z"/>
+              <path d="M236 110 C226 130 224 150 230 172 M364 110 C374 130 376 150 370 172 M252 78 C240 88 232 100 228 116" class="tm-strand"/>
+              <!-- ears -->
+              <ellipse class="tm-skin" cx="249" cy="152" rx="7" ry="13"/>
+              <ellipse class="tm-skin" cx="351" cy="152" rx="7" ry="13"/>
+              <!-- face -->
+              <path class="tm-skin" d="M300 86 C330 86 352 108 352 146 C352 182 330 212 300 214 C270 212 248 182 248 146 C248 108 270 86 300 86 Z"/>
+              <path d="M300 86 C330 86 352 108 352 146 C352 182 330 212 300 214 C270 212 248 182 248 146 C248 108 270 86 300 86 Z" fill="url(#tm-head-shade)"/>
+              <g id="tm-face"></g>
+              <!-- fringe -->
+              <path class="tm-hair" d="M250 134 C252 100 276 84 302 85 C330 86 350 104 352 132 C342 116 330 110 318 118 C308 106 292 106 282 120 C272 110 260 116 250 134 Z"/>
+              <path d="M266 108 Q276 100 290 98 M312 98 Q326 100 338 110" class="tm-strand"/>
+             </g>
+            </g>
+
+            <ellipse class="tm-hot" data-part="neck" cx="300" cy="226" rx="40" ry="24" tabindex="0" role="button" aria-label="Tickle their neck"/>
+          </g>
+        </g>
+      </g>
+
+      <!-- HANDS (generated) -->
+      <g id="tm-hands" filter="url(#tm-handfx)" pointer-events="none"></g>
+
+      <!-- light falloff, above everything -->
+      <rect class="tm-light" x="0" y="0" width="600" height="900" fill="url(#tm-lamp)" pointer-events="none"/>
+    </svg>
+
+    <div class="tm-grain" aria-hidden="true"></div>
+    <div class="tm-tint" aria-hidden="true"></div>
+    <div class="tm-vignette" aria-hidden="true"></div>
+    <p class="tm-caption" id="tm-caption" aria-live="polite"></p>
+    <button type="button" class="tm-stop" id="tm-stop" hidden>STOP</button>
+  </div>
+
+  <footer class="tm-controls">
+    <button type="button" class="tm-toggle" id="tm-sound" aria-pressed="true">sound: on</button>
+    <span class="tm-meta" aria-hidden="true">subject 04 · room 2b</span>
+    <button type="button" class="tm-toggle" id="tm-motion" aria-pressed="false">motion: full</button>
+  </footer>
+
+  <div class="tm-black" id="tm-black" hidden></div>
+
+  <section class="tm-end" id="tm-end" hidden aria-labelledby="tm-end-title">
+    <h1 class="tm-logo" id="tm-end-title"><span>TICKLE</span> <span>MONSTER</span></h1>
+    <p class="tm-tag">it doesn’t stop when you do.</p>
+    <div class="tm-end-actions">
+      <button type="button" class="tm-link" id="tm-replay">go again</button>
+      <button type="button" class="tm-link" id="tm-share">send it to someone</button>
+      <a class="tm-link" href="/">leave</a>
+    </div>
+  </section>
+
+  <noscript><p class="tm-noscript">This one needs JavaScript. They’ll wait.</p></noscript>
+</main>
+<script type="module" src="js/main.js"></script>
+</body>
+</html>
