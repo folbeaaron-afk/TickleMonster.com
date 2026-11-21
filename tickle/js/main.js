@@ -3,16 +3,16 @@
  * "They're Ticklish" — interactive piece for TICKLE MONSTER.
  * Wires input -> state machine -> hands / person / laugh / audio -> SVG.
  */
-import { createMachine } from './state.js?v=202611210906';
-import { Scene, PARTS } from './scene.js?v=202611210906';
-import { HandDirector } from './hands.js?v=202611210906';
-import { Person } from './person.js?v=202611210906';
-import { LaughDriver } from './laugh.js?v=202611210906';
-import { AudioEngine } from './audio.js?v=202611210906';
-import { stepNoise } from './util.js?v=202611210906';
+import { createMachine } from './state.js?v=202611210910';
+import { Scene, PARTS } from './scene.js?v=202611210910';
+import { HandDirector } from './hands.js?v=202611210910';
+import { Person } from './person.js?v=202611210910';
+import { LaughDriver } from './laugh.js?v=202611210910';
+import { AudioEngine } from './audio.js?v=202611210910';
+import { stepNoise } from './util.js?v=202611210910';
 import {
   incomingGeneration, loadCarrier, saveCarrier, infect, unwell, shareUrl, carrierLabel, countLine, counter,
-} from './spread.js?v=202611210906';
+} from './spread.js?v=202611210910';
 
 const SEED = 0x71c4;
 
@@ -173,7 +173,7 @@ replayBtn.addEventListener('click', () => {
 const incoming = incomingGeneration(location.search);
 let carrier = loadCarrier();
 const TITLE = document.title;
-const SHARE_TEXT = 'Click on this person’s stomach.';
+const SHARE_TEXT = 'Go ahead. They’re ticklish.';
 let hiddenCount = 0;
 let nextGiggle = 0;
 

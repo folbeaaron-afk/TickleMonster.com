@@ -4,8 +4,8 @@
  * pose and a face. Restrained early on. Later the mouth keeps laughing while
  * everything else about the face disagrees.
  */
-import { PARTS, restPose } from './scene.js?v=202611210906';
-import { clamp, damp, lerp, mulberry32, noise1, stepNoise } from './util.js?v=202611210906';
+import { PARTS, restPose } from './scene.js?v=202611210910';
+import { clamp, damp, lerp, mulberry32, noise1, stepNoise } from './util.js?v=202611210910';
 
 /** @typedef {import('./scene.js').Face} Face */
 /** @typedef {import('./scene.js').Pose} Pose */

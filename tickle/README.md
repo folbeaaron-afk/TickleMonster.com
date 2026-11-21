@@ -38,7 +38,7 @@ npx -p typescript tsc --noEmit --allowJs --checkJs --target es2022 --module es20
 
 Everything lives in `tickle/`. All CSS is scoped under `.tm-page` / `.tm-*`, and no global names are used except `window.__tickle`, which is a debug handle. To integrate:
 
-- **Static site**: link to `/tickle/` from the homepage, e.g. *“Click on this person’s stomach.”*
+- **Static site**: link to `/tickle/` from the homepage, e.g. *“Go ahead. They’re ticklish.”*
 - **Next.js / Astro / Vite etc.**: copy the folder into `public/tickle/` and link to `/tickle/index.html`, or route `/ticklish` to it. Keep it as its own page. The piece takes over the viewport and should not be embedded inside other layouts.
 - The end screen's **leave** link points to `/`. Change it in `index.html` if the home page lives elsewhere.
 
