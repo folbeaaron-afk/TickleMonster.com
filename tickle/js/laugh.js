@@ -4,7 +4,7 @@
  * mouth, so the face laughs in time with the sound, and still laughs when
  * the sound is off.
  */
-import { mulberry32, clamp } from './util.js?v=202611210856';
+import { mulberry32, clamp } from './util.js?v=202611210902';
 
 /**
  * @typedef {Object} Syllable
@@ -22,12 +22,12 @@ import { mulberry32, clamp } from './util.js?v=202611210856';
 /** Index = stage (6 = after STOP). */
 const LAUGH = [
   null,
-  { min: 2, max: 4, syl: 0.11, gap: 0.06, pitch: 300, pv: 0.08, rise: 0.05, amp: 0.32, inhale: 0.26, inAmp: 0.06, pause: 0.6, vowels: ['e', 'e', 'a'], breath: 0.25, crack: 0, wheeze: 0, sob: 0 },
-  { min: 4, max: 7, syl: 0.12, gap: 0.045, pitch: 325, pv: 0.1, rise: 0.08, amp: 0.45, inhale: 0.3, inAmp: 0.12, pause: 0.38, vowels: ['a', 'a', 'e'], breath: 0.3, crack: 0, wheeze: 0, sob: 0 },
-  { min: 5, max: 9, syl: 0.115, gap: 0.035, pitch: 370, pv: 0.16, rise: 0.15, amp: 0.55, inhale: 0.36, inAmp: 0.2, pause: 0.22, vowels: ['a', 'e', 'i'], breath: 0.42, crack: 0.12, wheeze: 0.06, sob: 0 },
-  { min: 6, max: 11, syl: 0.1, gap: 0.025, pitch: 415, pv: 0.22, rise: 0.2, amp: 0.62, inhale: 0.42, inAmp: 0.3, pause: 0.12, vowels: ['a', 'i', 'i', 'e'], breath: 0.52, crack: 0.2, wheeze: 0.2, sob: 0.04 },
-  { min: 7, max: 13, syl: 0.1, gap: 0.02, pitch: 435, pv: 0.3, rise: 0.25, amp: 0.66, inhale: 0.5, inAmp: 0.38, pause: 0.06, vowels: ['a', 'i', 'e'], breath: 0.6, crack: 0.28, wheeze: 0.24, sob: 0.18 },
-  { min: 9, max: 15, syl: 0.085, gap: 0.015, pitch: 470, pv: 0.34, rise: 0.3, amp: 0.72, inhale: 0.4, inAmp: 0.42, pause: 0.03, vowels: ['i', 'a', 'i'], breath: 0.65, crack: 0.35, wheeze: 0.22, sob: 0.22 },
+  { min: 2, max: 4, syl: 0.11, gap: 0.06, pitch: 300, pv: 0.08, rise: 0.05, amp: 0.6, inhale: 0.26, inAmp: 0.06, pause: 0.6, vowels: ['e', 'e', 'a'], breath: 0.25, crack: 0, wheeze: 0, sob: 0 },
+  { min: 4, max: 7, syl: 0.12, gap: 0.045, pitch: 325, pv: 0.1, rise: 0.08, amp: 0.64, inhale: 0.3, inAmp: 0.12, pause: 0.38, vowels: ['a', 'a', 'e'], breath: 0.3, crack: 0, wheeze: 0, sob: 0 },
+  { min: 5, max: 9, syl: 0.115, gap: 0.035, pitch: 370, pv: 0.16, rise: 0.15, amp: 0.68, inhale: 0.36, inAmp: 0.2, pause: 0.22, vowels: ['a', 'e', 'i'], breath: 0.42, crack: 0.12, wheeze: 0.06, sob: 0 },
+  { min: 6, max: 11, syl: 0.1, gap: 0.025, pitch: 415, pv: 0.22, rise: 0.2, amp: 0.72, inhale: 0.42, inAmp: 0.3, pause: 0.12, vowels: ['a', 'i', 'i', 'e'], breath: 0.52, crack: 0.2, wheeze: 0.2, sob: 0.04 },
+  { min: 7, max: 13, syl: 0.1, gap: 0.02, pitch: 435, pv: 0.3, rise: 0.25, amp: 0.75, inhale: 0.5, inAmp: 0.38, pause: 0.06, vowels: ['a', 'i', 'e'], breath: 0.6, crack: 0.28, wheeze: 0.24, sob: 0.18 },
+  { min: 9, max: 15, syl: 0.085, gap: 0.015, pitch: 470, pv: 0.34, rise: 0.3, amp: 0.8, inhale: 0.4, inAmp: 0.42, pause: 0.03, vowels: ['i', 'a', 'i'], breath: 0.65, crack: 0.35, wheeze: 0.22, sob: 0.22 },
 ];
 
 export class LaughDriver {

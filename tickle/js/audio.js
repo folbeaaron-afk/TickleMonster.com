@@ -11,7 +11,7 @@
  * which silences everything, including already-scheduled syllables, in
  * the same instant. That is the freeze.
  */
-import { mulberry32 } from './util.js?v=202611210856';
+import { mulberry32 } from './util.js?v=202611210902';
 
 /**
  * Drop real recordings in here to replace synthesis, e.g.
@@ -395,7 +395,8 @@ export class AudioEngine {
    */
   syllable(s, delay) {
     const c = this.ctx;
-    if (!c || !this.run || c.state !== 'running') return;
+    // a context that is still resuming will play these as soon as it starts
+    if (!c || !this.run || c.state === 'closed') return;
     const when = this.at(delay);
     const end = when + s.dur;
     const run = this.run;

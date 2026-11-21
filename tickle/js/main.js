@@ -3,16 +3,16 @@
  * "They're Ticklish" — interactive piece for TICKLE MONSTER.
  * Wires input -> state machine -> hands / person / laugh / audio -> SVG.
  */
-import { createMachine } from './state.js?v=202611210856';
-import { Scene, PARTS } from './scene.js?v=202611210856';
-import { HandDirector } from './hands.js?v=202611210856';
-import { Person } from './person.js?v=202611210856';
-import { LaughDriver } from './laugh.js?v=202611210856';
-import { AudioEngine } from './audio.js?v=202611210856';
-import { stepNoise } from './util.js?v=202611210856';
+import { createMachine } from './state.js?v=202611210902';
+import { Scene, PARTS } from './scene.js?v=202611210902';
+import { HandDirector } from './hands.js?v=202611210902';
+import { Person } from './person.js?v=202611210902';
+import { LaughDriver } from './laugh.js?v=202611210902';
+import { AudioEngine } from './audio.js?v=202611210902';
+import { stepNoise } from './util.js?v=202611210902';
 import {
   incomingGeneration, loadCarrier, saveCarrier, infect, unwell, shareUrl, carrierLabel, countLine, counter,
-} from './spread.js?v=202611210856';
+} from './spread.js?v=202611210902';
 
 const SEED = 0x71c4;
 const MOTION_KEY = 'tm-ticklish-motion';
@@ -222,10 +222,15 @@ function renderSpread() {
   carrierEl.textContent = carrierLabel(carrier.gen);
 }
 
+/** @type {number|null} last count we know of */
+let lastCount = null;
+
 /** @param {number|null} n */
 function showCount(n) {
   if (n === null) return; // counter unavailable: say nothing
-  countEl.textContent = countLine(n);
+  // never show the number going down (the server may lag a moment)
+  lastCount = lastCount === null ? n : Math.max(lastCount, n);
+  countEl.textContent = countLine(lastCount);
   countEl.hidden = false;
 }
 
@@ -236,7 +241,10 @@ async function passedOn() {
   saveCarrier(carrier);
   renderSpread();
   document.title = TITLE;
-  if (first) showCount(await counter('hit'));
+  if (!first) return;
+  // add yourself right away, then confirm with the shared counter
+  if (lastCount !== null) showCount(lastCount + 1);
+  showCount(await counter('hit'));
 }
 
 copyBtn.addEventListener('click', async () => {
