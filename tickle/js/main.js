@@ -3,19 +3,18 @@
  * "They're Ticklish" — interactive piece for TICKLE MONSTER.
  * Wires input -> state machine -> hands / person / laugh / audio -> SVG.
  */
-import { createMachine } from './state.js?v=202611210902';
-import { Scene, PARTS } from './scene.js?v=202611210902';
-import { HandDirector } from './hands.js?v=202611210902';
-import { Person } from './person.js?v=202611210902';
-import { LaughDriver } from './laugh.js?v=202611210902';
-import { AudioEngine } from './audio.js?v=202611210902';
-import { stepNoise } from './util.js?v=202611210902';
+import { createMachine } from './state.js?v=202611210906';
+import { Scene, PARTS } from './scene.js?v=202611210906';
+import { HandDirector } from './hands.js?v=202611210906';
+import { Person } from './person.js?v=202611210906';
+import { LaughDriver } from './laugh.js?v=202611210906';
+import { AudioEngine } from './audio.js?v=202611210906';
+import { stepNoise } from './util.js?v=202611210906';
 import {
   incomingGeneration, loadCarrier, saveCarrier, infect, unwell, shareUrl, carrierLabel, countLine, counter,
-} from './spread.js?v=202611210902';
+} from './spread.js?v=202611210906';
 
 const SEED = 0x71c4;
-const MOTION_KEY = 'tm-ticklish-motion';
 
 /** @param {string} id */
 const $ = (id) => /** @type {HTMLElement} */ (document.getElementById(id));
@@ -25,7 +24,6 @@ const headline = $('tm-headline');
 const caption = $('tm-caption');
 const stopBtn = /** @type {HTMLButtonElement} */ ($('tm-stop'));
 const soundBtn = $('tm-sound');
-const motionBtn = $('tm-motion');
 const black = $('tm-black');
 const end = $('tm-end');
 const replayBtn = $('tm-replay');
@@ -50,18 +48,8 @@ const HEADLINES = [
 
 const clock = () => performance.now() / 1000;
 
-/* ---------- motion preference ---------- */
-function initialReduced() {
-  try {
-    const saved = localStorage.getItem(MOTION_KEY);
-    if (saved === 'reduced') return true;
-    if (saved === 'full') return false;
-  } catch {
-    /* ignore */
-  }
-  return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-}
-let reduced = initialReduced();
+/* Always full motion (the calmer mode still exists in the code, switched off). */
+const reduced = false;
 
 /* ---------- systems ---------- */
 const machine = createMachine(clock());
@@ -103,19 +91,13 @@ function showCaption(stage, start) {
 }
 
 /* ---------- UI state ---------- */
-function syncMotion() {
-  root.dataset.motion = reduced ? 'reduced' : 'full';
-  motionBtn.textContent = reduced ? 'motion: reduced' : 'motion: full';
-  motionBtn.setAttribute('aria-pressed', String(reduced));
-  scene.setBoil(!reduced && !lowPower);
-}
 function syncSound() {
   soundBtn.textContent = audio.muted ? 'sound: off' : 'sound: on';
   soundBtn.setAttribute('aria-pressed', String(!audio.muted));
 }
 
 let lowPower = false;
-syncMotion();
+scene.setBoil(true);
 syncSound();
 
 /* ---------- input ---------- */
@@ -167,15 +149,6 @@ soundBtn.addEventListener('click', () => {
   audio.unlock();
   audio.setMuted(!audio.muted);
   syncSound();
-});
-motionBtn.addEventListener('click', () => {
-  reduced = !reduced;
-  try {
-    localStorage.setItem(MOTION_KEY, reduced ? 'reduced' : 'full');
-  } catch {
-    /* ignore */
-  }
-  syncMotion();
 });
 window.addEventListener('keydown', (e) => {
   if (e.key === 'm' && !e.metaKey && !e.ctrlKey && !e.altKey) soundBtn.click();

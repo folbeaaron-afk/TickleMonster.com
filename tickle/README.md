@@ -28,8 +28,10 @@ After changing any file, run `python3 tickle/stamp.py` so browsers fetch fresh c
 Optional type-check (the JS is annotated with `// @ts-check` + JSDoc):
 
 ```sh
+# the ?v= cache-busting tags confuse tsc, so check a copy without them
+mkdir -p /tmp/tc && cp tickle/js/*.js /tmp/tc/ && sed -i -E "s/\.js\?v=[0-9]+'/.js'/" /tmp/tc/*.js
 npx -p typescript tsc --noEmit --allowJs --checkJs --target es2022 --module es2022 \
-  --moduleResolution bundler --lib es2022,dom tickle/js/*.js
+  --moduleResolution bundler --lib es2022,dom /tmp/tc/*.js
 ```
 
 ## Integrating with the main site
@@ -80,7 +82,7 @@ Each stage has a minimum dwell, so hammering the screen can't skip the build-up.
 ## Accessibility
 
 - Every hotspot is a focusable `role="button"` with a label. **Enter / Space** tickles.
-- **Reduced motion** follows `prefers-reduced-motion` and can be toggled on the page (the choice is remembered). The hands fade in place, the body barely moves, there's no line boil, grain or push-in, and the face still carries the escalation.
+- **Motion:** always full motion, by request. A calmer mode still exists in the code (`reduced` in `js/main.js`) but is switched off and has no on-page toggle.
 - **Captions** describe the sound (`(laughing. it sounds wrong.)`, `“please”`) for muted and deaf or hard-of-hearing visitors.
 - **Sound** never starts before a user gesture. The toggle is always visible, the `M` key mutes, and the choice is remembered. There are no strobing effects.
 

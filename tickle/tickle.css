@@ -278,7 +278,7 @@
 .tm-controls {
   width: min(100%, 620px);
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
   gap: 12px;
   font-size: 12px;
