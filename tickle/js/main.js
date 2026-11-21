@@ -3,17 +3,17 @@
  * "They're Ticklish" — interactive piece for TICKLE MONSTER.
  * Wires input -> state machine -> hands / person / laugh / audio -> SVG.
  */
-import { createMachine } from './state.js?v=202611210941';
-import { Scene, PARTS } from './scene.js?v=202611210941';
-import { HandDirector } from './hands.js?v=202611210941';
-import { Person } from './person.js?v=202611210941';
-import { LaughDriver } from './laugh.js?v=202611210941';
-import { AudioEngine } from './audio.js?v=202611210941';
-import { stepNoise } from './util.js?v=202611210941';
+import { createMachine } from './state.js?v=202611211013';
+import { Scene, PARTS } from './scene.js?v=202611211013';
+import { HandDirector } from './hands.js?v=202611211013';
+import { Person } from './person.js?v=202611211013';
+import { LaughDriver } from './laugh.js?v=202611211013';
+import { AudioEngine } from './audio.js?v=202611211013';
+import { stepNoise } from './util.js?v=202611211013';
 import {
   incomingGeneration, loadCarrier, saveCarrier, infect, unwell, shareUrl, counter,
   markStopped, yourLine, totalLine, loadNumber, saveNumber, loadTotal, saveTotal,
-} from './spread.js?v=202611210941';
+} from './spread.js?v=202611211013';
 
 const SEED = 0x71c4;
 
@@ -163,6 +163,22 @@ for (const type of ['pointerdown', 'pointerup', 'touchend', 'click', 'keydown'])
   }, { capture: true, passive: true });
 }
 
+/* ---------- leave ---------- */
+const gone = $('tm-gone');
+const goneLogo = $('tm-gone-logo');
+let left = false;
+$('tm-leave').addEventListener('click', () => {
+  left = true;
+  audio.unlock();
+  document.title = 'TICKLE MONSTER';
+  end.hidden = true;
+  gone.hidden = false;
+  goneLogo.classList.add('is-shaking');
+  audio.leaveSound(5);
+  // the sound cuts out; everything goes still
+  setTimeout(() => goneLogo.classList.remove('is-shaking'), 5050);
+});
+
 replayBtn.addEventListener('click', () => {
   audio.unlock();
   const now = clock();
@@ -298,11 +314,11 @@ shareBtn.addEventListener('click', async () => {
 
 // while it's in you: when you look away, the tab laughs
 document.addEventListener('visibilitychange', () => {
-  if (document.hidden && unwell(carrier)) {
+  if (document.hidden && unwell(carrier) && !left) {
     hiddenCount = Math.min(hiddenCount + 1, 6);
     document.title = 'ha'.repeat(hiddenCount);
   } else {
-    document.title = TITLE;
+    document.title = left ? 'TICKLE MONSTER' : TITLE;
   }
 });
 if (unwell(carrier)) sub.textContent = '(you never passed it on.)';
@@ -455,7 +471,7 @@ function frame() {
   } else if (s.phase === 'black' && !gigglePlayed && now - s.phaseAt > 1.1) {
     gigglePlayed = true;
     audio.distantGiggle();
-  } else if (s.phase === 'title' && unwell(carrier) && now > nextGiggle) {
+  } else if (s.phase === 'title' && !left && unwell(carrier) && now > nextGiggle) {
     // still in you: every so often, somewhere, a giggle
     nextGiggle = now + 28 + ((boilFrame * 7919) % 25);
     audio.distantGiggle();
