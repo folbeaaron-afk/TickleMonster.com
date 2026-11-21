@@ -3,13 +3,16 @@
  * "They're Ticklish" — interactive piece for TICKLE MONSTER.
  * Wires input -> state machine -> hands / person / laugh / audio -> SVG.
  */
-import { createMachine } from './state.js';
+import { createMachine, canHold, TIMING } from './state.js';
 import { Scene, PARTS } from './scene.js';
 import { HandDirector } from './hands.js';
 import { Person } from './person.js';
 import { LaughDriver } from './laugh.js';
 import { AudioEngine } from './audio.js';
-import { stepNoise } from './util.js';
+import { stepNoise, clamp } from './util.js';
+import {
+  incomingGeneration, loadCarrier, saveCarrier, infect, unwell, shareUrl, carrierLabel,
+} from './spread.js';
 
 const SEED = 0x71c4;
 const MOTION_KEY = 'tm-ticklish-motion';
@@ -27,6 +30,13 @@ const black = $('tm-black');
 const end = $('tm-end');
 const replayBtn = $('tm-replay');
 const shareBtn = $('tm-share');
+const after = $('tm-after');
+const againBtn = $('tm-again');
+const sub = $('tm-sub');
+const spreadLine = $('tm-spread-line');
+const spreadSub = $('tm-spread-sub');
+const carrierEl = $('tm-carrier');
+const held = { L: $('tm-heldL'), R: $('tm-heldR') };
 
 const clock = () => performance.now() / 1000;
 
@@ -63,10 +73,11 @@ const LINES = {
   2: ['(laughing)', '“okay— okay—”', '(squirming, laughing)', '“ha— that tickles”'],
   3: ['(laughing. it sounds wrong.)', '“wait—”', '(laughing harder than they want to)', '“wait, wait—”'],
   4: ['“stop— ha— stop—”', '(trying to pull away)', '(laughing. eyes wet.)', '“please— ha—”'],
-  5: ['(laughing. they can’t stop.)', '“please”', '(laughing. not breathing right.)', '“make it stop”', '(still laughing)'],
+  5: ['(laughing. they can’t stop.)', '“please”', '(laughing. not breathing right.)', '(one of their hands is open)', '“make it stop”', '(still laughing)'],
   6: ['(laughing)', '(laughing)', '(laughing)'],
+  7: ['(crying)', '(crying. really crying.)', '(crying)'],
 };
-const lineIdx = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 };
+const lineIdx = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0 };
 let captionUntil = 0;
 /** @param {number} stage @param {number} start */
 function showCaption(stage, start) {
@@ -136,6 +147,57 @@ for (const part of Object.keys(PARTS)) {
   });
 }
 
+/* ---------- holding their hand ---------- */
+/** @type {'L'|'R'|null} */
+let holdHand = null;
+
+/** @param {'L'|'R'} side */
+function holdStart(side) {
+  audio.unlock();
+  const now = clock();
+  const prev = machine.state;
+  holdHand = side;
+  if (machine.dispatch({ type: 'HOLD_START', t: now })) onTransition(machine.state, prev, now);
+}
+function holdEnd() {
+  if (!holdHand) return;
+  holdHand = null;
+  const now = clock();
+  const prev = machine.state;
+  if (machine.dispatch({ type: 'HOLD_END', t: now })) onTransition(machine.state, prev, now);
+}
+
+svg.querySelectorAll('.tm-hold').forEach((node) => {
+  const el = /** @type {SVGElement} */ (node);
+  const side = /** @type {'L'|'R'} */ (el.getAttribute('data-hand'));
+  el.addEventListener('pointerdown', (e) => {
+    const pe = /** @type {PointerEvent} */ (e);
+    if (pe.button !== 0) return;
+    pe.preventDefault();
+    try {
+      el.setPointerCapture(pe.pointerId);
+    } catch {
+      /* not supported on this element: pointerup on window still ends it */
+    }
+    holdStart(side);
+  });
+  el.addEventListener('keydown', (e) => {
+    const ke = /** @type {KeyboardEvent} */ (e);
+    if ((ke.key === 'Enter' || ke.key === ' ') && !ke.repeat) {
+      ke.preventDefault();
+      holdStart(side);
+    }
+  });
+  el.addEventListener('keyup', (e) => {
+    const ke = /** @type {KeyboardEvent} */ (e);
+    if (ke.key === 'Enter' || ke.key === ' ') holdEnd();
+  });
+  el.addEventListener('blur', holdEnd);
+});
+window.addEventListener('pointerup', holdEnd);
+window.addEventListener('pointercancel', holdEnd);
+window.addEventListener('blur', holdEnd);
+
 stopBtn.addEventListener('click', () => {
   audio.unlock();
   const now = clock();
@@ -163,30 +225,81 @@ window.addEventListener('keydown', (e) => {
 // Any first gesture may unlock audio (e.g. a tap on the bed, not the body).
 window.addEventListener('pointerdown', () => audio.unlock(), { once: true, capture: true });
 
-replayBtn.addEventListener('click', () => {
+function replay() {
   audio.unlock();
   const now = clock();
   const prev = machine.state;
   if (machine.dispatch({ type: 'REPLAY', t: now })) onTransition(machine.state, prev, now);
-});
+}
+replayBtn.addEventListener('click', replay);
+againBtn.addEventListener('click', replay);
+
+/* ---------- spread = relief ---------- */
+const incoming = incomingGeneration(location.search);
+let carrier = loadCarrier();
+const TITLE = document.title;
+let hiddenCount = 0;
+let nextGiggle = 0;
+
+function renderSpread() {
+  if (!carrier) return;
+  if (carrier.shared) {
+    spreadLine.textContent = 'better.';
+    spreadSub.textContent = 'for now.';
+    shareBtn.textContent = 'pass it on again';
+  } else {
+    spreadLine.textContent = 'it’s in you now.';
+    spreadSub.textContent = 'passing it on helps.';
+    shareBtn.textContent = 'pass it on';
+  }
+  carrierEl.textContent = carrierLabel(carrier.gen);
+}
 
 shareBtn.addEventListener('click', async () => {
-  const url = location.href.split('#')[0];
+  if (!carrier) carrier = infect(null, incoming);
+  const url = shareUrl(location, carrier.gen);
   const text = 'Click on this person’s stomach.';
+  let passed = false;
   try {
     if (navigator.share) {
       await navigator.share({ text, url });
-      return;
+      passed = true;
+    } else {
+      await navigator.clipboard.writeText(`${text} ${url}`);
+      passed = true;
+      carrierEl.textContent = 'link copied. send it to someone.';
     }
-    await navigator.clipboard.writeText(`${text} ${url}`);
-    shareBtn.textContent = 'link copied';
-  } catch {
-    shareBtn.textContent = url;
+  } catch (err) {
+    // cancelled the share sheet: still in you
+    if (!(err && /** @type {any} */ (err).name === 'AbortError')) {
+      carrierEl.textContent = url;
+      passed = true;
+    }
+  }
+  if (passed) {
+    carrier = { ...carrier, shared: true };
+    saveCarrier(carrier);
+    const copied = carrierEl.textContent;
+    renderSpread();
+    if (copied && copied !== carrierLabel(carrier.gen)) carrierEl.textContent = copied;
+    document.title = TITLE;
   }
 });
 
+// while it's in you: when you look away, the tab laughs
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden && unwell(carrier)) {
+    hiddenCount = Math.min(hiddenCount + 1, 6);
+    document.title = 'ha'.repeat(hiddenCount);
+  } else {
+    document.title = TITLE;
+  }
+});
+if (unwell(carrier)) sub.textContent = '(you never passed it on.)';
+
 /* ---------- transitions ---------- */
 let gigglePlayed = false;
+let sizzled = false;
 
 /**
  * @param {import('./state.js').TickleState} s
@@ -216,8 +329,31 @@ function onTransition(s, prev, now) {
         stopBtn.hidden = true;
         break;
       case 'title':
+        carrier = infect(carrier, incoming);
+        saveCarrier(carrier);
+        renderSpread();
         end.hidden = false;
-        replayBtn.focus({ preventScroll: true });
+        nextGiggle = now + 25;
+        shareBtn.focus({ preventScroll: true });
+        break;
+      case 'crying':
+        // the other way out
+        audio.breakRun(0.5);
+        laugh.reset(SEED + 3);
+        director.releaseAll();
+        stopBtn.hidden = true;
+        setHeld(null);
+        holdHand = null;
+        sizzled = false;
+        if (carrier) {
+          carrier = { ...carrier, cured: true };
+          saveCarrier(carrier);
+          document.title = TITLE;
+        }
+        break;
+      case 'calm':
+        caption.classList.remove('is-on');
+        after.hidden = false;
         break;
       case 'stopping':
         stopBtn.classList.add('is-pressed');
@@ -226,7 +362,18 @@ function onTransition(s, prev, now) {
     }
   }
   if (s.stopVisible && !prev.stopVisible) stopBtn.hidden = false;
-  audio.setStage(s.phase === 'stopping' ? 6 : s.stage);
+  if (s.holdingSince !== prev.holdingSince) setHeld(s.holdingSince !== null ? holdHand : null);
+  audio.setStage(soundStage(s));
+}
+
+/** @param {import('./state.js').TickleState} s */
+const soundStage = (s) =>
+  s.phase === 'crying' || s.phase === 'calm' ? 7 : s.phase === 'stopping' ? 6 : s.stage;
+
+/** Show the visitor's own (warm) hand over theirs. @param {'L'|'R'|null} side */
+function setHeld(side) {
+  held.L.classList.toggle('is-on', side === 'L');
+  held.R.classList.toggle('is-on', side === 'R');
 }
 
 /** @param {number} now */
@@ -237,15 +384,18 @@ function resetAll(now) {
   audio.reset();
   for (const k in lineIdx) lineIdx[k] = 0;
   gigglePlayed = false;
+  sizzled = false;
+  setHeld(null);
+  holdHand = null;
   black.hidden = true;
   end.hidden = true;
+  after.hidden = true;
   stopBtn.hidden = true;
   stopBtn.disabled = false;
   stopBtn.classList.remove('is-pressed');
   stopBtn.removeAttribute('aria-disabled');
   caption.classList.remove('is-on');
   caption.textContent = '';
-  shareBtn.textContent = 'send it to someone';
   headline.textContent = 'GO AHEAD. THEY’RE TICKLISH.';
   root.dataset.stage = '0';
   scene.setPose(person.drawPose());
@@ -271,31 +421,42 @@ function frame() {
   if (machine.dispatch({ type: 'TICK', t: now })) onTransition(machine.state, prev, now);
   const s = machine.state;
 
-  const live = s.phase === 'idle' || s.phase === 'play' || s.phase === 'auto' || s.phase === 'stopping';
+  const mode = s.phase === 'crying' || s.phase === 'calm' ? s.phase : null;
+  const live = s.phase === 'idle' || s.phase === 'play' || s.phase === 'auto' || s.phase === 'stopping' || !!mode;
   if (live) {
     const frantic = s.phase === 'stopping';
-    const profile = frantic ? 6 : s.stage;
-    director.update(now, dt, { stage: s.stage, profile, auto: s.phase === 'auto' || frantic, lastPart: s.lastPart });
+    const profile = mode ? 7 : frantic ? 6 : s.stage;
+    const modeT = mode ? now - s.phaseAt + (s.phase === 'calm' ? TIMING.cryTime : 0) : 0;
+    director.update(now, dt, {
+      stage: s.stage, profile, auto: s.phase === 'auto' || frantic, lastPart: s.lastPart, release: !!mode,
+    });
     const contacts = director.contacts();
     const touching = contacts.some((c) => c.level > 0.5);
-    laugh.update(now, touching || s.stage >= 5, profile);
+    if (mode) laugh.update(now, s.phase === 'crying' && modeT < 3.6, 7);
+    else laugh.update(now, touching || s.stage >= 5, profile);
     const env = laugh.sample(now);
+    const holdP = s.holdingSince !== null && canHold(s) ? clamp((now - s.holdingSince) / TIMING.holdToCure, 0, 1) : 0;
     person.update(now, dt, {
       stage: s.stage, frantic, contacts, laughOpen: env.open, laughIn: env.inhale,
-      laughing: touching || laugh.sounding(now), hover, reduced, t5: s.stage === 5 ? now - s.stageAt : 0,
+      laughing: !mode && (touching || laugh.sounding(now)), hover, reduced, t5: s.stage === 5 ? now - s.stageAt : 0,
+      mode, modeT, holdP, holdHand,
     });
-    audio.update(profile);
+    audio.update(soundStage(s));
+    if (s.phase === 'crying' && !sizzled && modeT > 4.1) {
+      sizzled = true;
+      audio.sizzle();
+    }
 
-    const pFps = reduced ? 30 : PERSON_FPS[s.stage];
+    const pFps = reduced ? 30 : mode ? 24 : PERSON_FPS[s.stage];
     if (now - lastPersonDraw >= 1 / pFps - 0.002) {
       lastPersonDraw = now;
       scene.setPose(person.drawPose());
       // in the late stages the face sometimes "sticks" for a beat
-      const stick = s.stage >= 4 && !reduced && stepNoise(now * 3.3, 21) > 0.72;
+      const stick = s.stage >= 4 && !mode && !reduced && stepNoise(now * 3.3, 21) > 0.72;
       if (!stick) scene.setFace(/** @type {any} */ (person.drawnFace));
-      if (!reduced) scene.boil(boilFrame++, 1.8 + s.stage * 0.45 + (frantic ? 1 : 0));
+      if (!reduced) scene.boil(boilFrame++, mode ? 1.6 : 1.8 + s.stage * 0.45 + (frantic ? 1 : 0));
     }
-    const hFps = reduced ? 30 : frantic ? 60 : HAND_FPS[s.stage];
+    const hFps = reduced ? 30 : mode ? 24 : frantic ? 60 : HAND_FPS[s.stage];
     if (now - lastHandDraw >= 1 / hFps - 0.002) {
       lastHandDraw = now;
       director.draw(now, reduced, s.stage);
@@ -315,6 +476,10 @@ function frame() {
     }
   } else if (s.phase === 'black' && !gigglePlayed && now - s.phaseAt > 1.1) {
     gigglePlayed = true;
+    audio.distantGiggle();
+  } else if (s.phase === 'title' && unwell(carrier) && now > nextGiggle) {
+    // still in you: every so often, somewhere, a giggle
+    nextGiggle = now + 28 + ((boilFrame * 7919) % 25);
     audio.distantGiggle();
   }
 

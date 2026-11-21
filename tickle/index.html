@@ -55,6 +55,40 @@
           <rect y="12" width="60" height="9" fill="#584a29"/>
           <rect y="22" width="60" height="2.2" fill="#3c5653"/>
         </pattern>
+        <!-- sunny yellow wallpaper: cheerful on purpose -->
+        <pattern id="tm-wallpaper" patternUnits="userSpaceOnUse" width="36" height="36">
+          <rect width="36" height="36" fill="#dcb941"/>
+          <rect x="17" width="2" height="36" fill="#e6c95e"/>
+          <g transform="translate(9 9)">
+            <circle r="2.6" cx="0" cy="-3.4" fill="#f4e7b4"/><circle r="2.6" cx="3.3" cy="-1" fill="#f4e7b4"/>
+            <circle r="2.6" cx="2" cy="2.9" fill="#f4e7b4"/><circle r="2.6" cx="-2" cy="2.9" fill="#f4e7b4"/>
+            <circle r="2.6" cx="-3.3" cy="-1" fill="#f4e7b4"/><circle r="2" fill="#d0862c"/>
+          </g>
+          <g transform="translate(27 27)">
+            <circle r="4.2" fill="#f0d35c" stroke="#b8902a" stroke-width="0.6"/>
+            <circle r="0.7" cx="-1.4" cy="-1" fill="#5c4313"/><circle r="0.7" cx="1.4" cy="-1" fill="#5c4313"/>
+            <path d="M-2 0.9 Q0 2.8 2 0.9" stroke="#5c4313" stroke-width="0.6" fill="none"/>
+          </g>
+        </pattern>
+        <linearGradient id="tm-wall-shade" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#1a120a" stop-opacity="0.45"/>
+          <stop offset="1" stop-color="#1a120a" stop-opacity="0.1"/>
+        </linearGradient>
+        <linearGradient id="tm-warm-fade" x1="0" y1="1" x2="0" y2="0">
+          <stop offset="0" stop-color="#b98468" stop-opacity="0"/>
+          <stop offset="0.55" stop-color="#b98468" stop-opacity="1"/>
+        </linearGradient>
+        <!-- the visitor's hand: warm, ordinary, the opposite of the others -->
+        <g id="tm-held-shape">
+          <path d="M136 620 C142 588 156 552 166 522 L194 528 C186 560 178 592 176 620 Z" fill="url(#tm-warm-fade)"/>
+          <ellipse cx="168" cy="485" rx="3.8" ry="9.5" fill="#c4927a" stroke="#4a2c20" stroke-width="1.1" transform="rotate(-8 168 485)"/>
+          <ellipse cx="175.5" cy="481" rx="3.9" ry="10.5" fill="#c4927a" stroke="#4a2c20" stroke-width="1.1"/>
+          <ellipse cx="183" cy="481.5" rx="3.9" ry="10" fill="#c4927a" stroke="#4a2c20" stroke-width="1.1"/>
+          <ellipse cx="190" cy="486" rx="3.5" ry="8.5" fill="#c4927a" stroke="#4a2c20" stroke-width="1.1" transform="rotate(10 190 486)"/>
+          <path d="M162 492 C160 506 162 520 170 528 C178 534 190 532 196 522 C200 512 198 498 194 490 C184 486 172 486 162 492 Z" fill="#c4927a" stroke="#4a2c20" stroke-width="1.2"/>
+          <ellipse cx="160" cy="512" rx="4.2" ry="10" fill="#c4927a" stroke="#4a2c20" stroke-width="1.1" transform="rotate(28 160 512)"/>
+          <path d="M170 500 Q178 503 188 500" fill="none" stroke="#8d5c48" stroke-width="0.9"/>
+        </g>
         <pattern id="tm-boards" patternUnits="userSpaceOnUse" width="90" height="900">
           <rect width="90" height="900" fill="#1d1713"/>
           <rect x="88" width="2" height="900" fill="#0f0c0a"/>
@@ -113,8 +147,48 @@
 
       <!-- ROOM -->
       <rect x="-200" y="-200" width="1000" height="1300" fill="url(#tm-boards)"/>
+      <g id="tm-wall">
+        <rect x="-200" y="-200" width="1000" height="240" fill="url(#tm-wallpaper)"/>
+        <rect x="-200" y="-200" width="1000" height="240" fill="url(#tm-wall-shade)"/>
+        <!-- a small tear; dark wood behind it -->
+        <path d="M486 6 L493 3 L499 9 L505 5 L509 14 L503 22 L506 29 L497 31 L491 25 L485 27 L483 17 Z" fill="#3b2416" stroke="#8a6a26" stroke-width="0.9"/>
+        <path d="M499 9 L505 5 L509 14 L503 22 Z" fill="#e8d07a" opacity="0.85"/>
+        <rect x="-200" y="34" width="1000" height="7" fill="#c9b47c" stroke="#5a4a2c" stroke-width="1"/>
+      </g>
+      <!-- the nightstand -->
+      <g id="tm-nightstand">
+        <rect x="538" y="62" width="70" height="104" rx="3" fill="#3b2a1f" class="tm-ink"/>
+        <rect x="544" y="68" width="58" height="92" rx="2" fill="#46321f"/>
+        <!-- a cup of froyo, pink, buried in sprinkles; the spoon still in it -->
+        <circle cx="566" cy="92" r="15" fill="#efe6d6" stroke="#3a2c22" stroke-width="1.2"/>
+        <circle cx="566" cy="92" r="12" fill="#e7a6c2"/>
+        <g stroke-width="1.8" stroke-linecap="round">
+          <path d="M559 86 l3 1" stroke="#5fb6d8"/><path d="M568 84 l2 2" stroke="#f2d35b"/><path d="M572 90 l3 -1" stroke="#7bd07a"/>
+          <path d="M561 95 l2 2" stroke="#f08a5d"/><path d="M567 98 l3 0" stroke="#5fb6d8"/><path d="M563 90 l1 2" stroke="#c88be0"/>
+          <path d="M572 96 l1 2" stroke="#f2d35b"/><path d="M557 92 l2 -1" stroke="#7bd07a"/><path d="M569 92 l2 1" stroke="#f08a5d"/>
+        </g>
+        <path d="M570 88 L590 70" stroke="#d9d3c4" stroke-width="3" stroke-linecap="round"/>
+        <!-- an inhaler -->
+        <g transform="rotate(-24 574 136)">
+          <rect x="562" y="128" width="22" height="11" rx="3" fill="#6f8fa6" stroke="#22303a" stroke-width="1.1"/>
+          <rect x="580" y="124" width="9" height="19" rx="2.5" fill="#d8d4cb" stroke="#22303a" stroke-width="1.1"/>
+        </g>
+      </g>
+      <!-- a piece of paper on the floor. someone drew on it. -->
+      <g id="tm-note" transform="rotate(-9 34 664)">
+        <rect x="8" y="624" width="54" height="76" fill="#e6dfcb" stroke="#6b6250" stroke-width="0.8"/>
+        <path d="M14 632 L56 632 M14 637 L48 637 M14 642 L52 642" stroke="#9a9384" stroke-width="0.8"/>
+        <g fill="none" stroke="#3d3a36" stroke-width="0.9" stroke-linecap="round" opacity="0.85">
+          <circle cx="35" cy="655" r="5"/>
+          <path d="M31 656 L32 657.5 L33 656 L34 657.5 L35 656 L36 657.5 L37 656 L38 657.5 L39 656"/>
+          <path d="M35 660 L35 676 M35 676 L30 686 M35 676 L40 686"/>
+          <path d="M35 663 L24 658 M35 663 L46 658 M35 667 L23 672 M35 667 L47 672"/>
+          <path d="M24 658 l-2 -2 M24 658 l-3 0 M24 658 l-2 2 M46 658 l2 -2 M46 658 l3 0 M46 658 l2 2 M23 672 l-2 -2 M23 672 l-3 1 M23 672 l-1 3 M47 672 l2 -2 M47 672 l3 1 M47 672 l1 3"/>
+        </g>
+        <text x="35" y="695" text-anchor="middle" font-family="Special Elite, Courier New, monospace" font-size="6.4" fill="#3d3a36" letter-spacing="0.4">INSIDE ME</text>
+      </g>
       <g id="tm-bed">
-        <rect x="68" y="6" width="464" height="898" rx="6" fill="#3a2a1f" class="tm-ink"/>
+        <rect x="68" y="30" width="464" height="874" rx="6" fill="#3a2a1f" class="tm-ink"/>
         <rect x="86" y="54" width="428" height="840" rx="20" fill="url(#tm-sheet)" class="tm-ink"/>
         <g class="tm-wrinkle">
           <path d="M110 300 C150 312 170 330 190 360"/>
@@ -129,8 +203,14 @@
         <path d="M86 862 C200 852 400 852 514 862 L514 894 L86 894 Z" fill="#4f2727" class="tm-ink"/>
         <path d="M86 872 C200 864 400 864 514 872" class="tm-fold" stroke="#2c1414"/>
         <!-- headboard -->
-        <rect x="68" y="0" width="464" height="54" fill="#2a1e16" class="tm-ink"/>
-        <path d="M76 44 L524 44" stroke="#4b3627" stroke-width="2"/>
+        <rect x="68" y="24" width="464" height="34" fill="#2a1e16" class="tm-ink"/>
+        <path d="M76 50 L524 50" stroke="#4b3627" stroke-width="2"/>
+        <!-- a smiley sticker someone put on the headboard a long time ago -->
+        <g transform="translate(112 38) rotate(-12)">
+          <circle r="7.5" fill="#e8c63f" stroke="#7a6116" stroke-width="0.8" opacity="0.85"/>
+          <circle cx="-2.4" cy="-1.8" r="1" fill="#3d2d0c"/><circle cx="2.4" cy="-1.8" r="1" fill="#3d2d0c"/>
+          <path d="M-3.6 1.6 Q0 5 3.6 1.6" stroke="#3d2d0c" stroke-width="1" fill="none"/>
+        </g>
         <!-- pillow -->
         <path d="M176 74 C240 64 360 64 424 74 C440 98 442 186 426 212 C360 222 240 222 174 212 C158 186 160 98 176 74 Z" fill="#ded6c0" class="tm-ink"/>
         <path d="M190 90 C230 100 250 96 280 86 M330 88 C360 98 390 100 412 92 M186 200 C220 192 248 196 262 206 M340 206 C360 196 392 194 414 200" class="tm-wrinkle-in"/>
@@ -174,8 +254,16 @@
           <path d="M210 486 L390 486" class="tm-seam" opacity="0.6"/>
 
           <g id="tm-torso">
-            <g id="tm-armL"><use href="#tm-arm-shape"/></g>
-            <g id="tm-armR"><use href="#tm-arm-shape" transform="matrix(-1 0 0 1 600 0)"/></g>
+            <g id="tm-armL">
+              <use href="#tm-arm-shape"/>
+              <g class="tm-held" id="tm-heldL"><use href="#tm-held-shape"/></g>
+              <ellipse class="tm-hold" data-hand="L" cx="177" cy="503" rx="30" ry="36" tabindex="0" role="button" aria-label="Their left hand"/>
+            </g>
+            <g id="tm-armR">
+              <use href="#tm-arm-shape" transform="matrix(-1 0 0 1 600 0)"/>
+              <g class="tm-held" id="tm-heldR"><use href="#tm-held-shape" transform="matrix(-1 0 0 1 600 0)"/></g>
+              <ellipse class="tm-hold" data-hand="R" cx="423" cy="503" rx="30" ry="36" tabindex="0" role="button" aria-label="Their right hand"/>
+            </g>
 
             <!-- neck -->
             <path class="tm-skin" d="M280 196 L320 196 L324 242 L276 242 Z"/>
@@ -239,14 +327,24 @@
     <button type="button" class="tm-toggle" id="tm-motion" aria-pressed="false">motion: full</button>
   </footer>
 
+  <section class="tm-after" id="tm-after" hidden>
+    <p class="tm-after-line">let it out.</p>
+    <button type="button" class="tm-link" id="tm-again">again</button>
+  </section>
+
   <div class="tm-black" id="tm-black" hidden></div>
 
   <section class="tm-end" id="tm-end" hidden aria-labelledby="tm-end-title">
     <h1 class="tm-logo" id="tm-end-title"><span>TICKLE</span> <span>MONSTER</span></h1>
     <p class="tm-tag">it doesn’t stop when you do.</p>
+    <div class="tm-spread" id="tm-spread">
+      <p class="tm-spread-line" id="tm-spread-line">it’s in you now.</p>
+      <p class="tm-spread-sub" id="tm-spread-sub">passing it on helps.</p>
+      <button type="button" class="tm-pass" id="tm-share">pass it on</button>
+      <p class="tm-carrier" id="tm-carrier" aria-live="polite"></p>
+    </div>
     <div class="tm-end-actions">
       <button type="button" class="tm-link" id="tm-replay">go again</button>
-      <button type="button" class="tm-link" id="tm-share">send it to someone</button>
       <a class="tm-link" href="/">leave</a>
     </div>
   </section>

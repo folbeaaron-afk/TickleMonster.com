@@ -13,6 +13,7 @@ import {
 
 /**
  * Behaviour per stage. Index 6 is "stopping" (STOP was pressed; it gets worse).
+ * Index 7 is the hidden ending: the hands let go.
  * freq: finger cycles per second · amp: finger travel · jitter: stepped,
  * non-human twitch · curl/splay: finger posture · bend/sway: arm shape ·
  * enter: seconds to reach the body · follow: how tightly it tracks the
@@ -27,6 +28,8 @@ export const HAND_STAGE = [
   { freq: 10.5, amp: 1.15, jitter: 0.42, curl: 0.27, splay: 0.45, bend: 44, sway: 14, enter: 0.32, follow: 15, linger: 99, dur: 2.6, elong: 1.22, scrub: 12 },
   { freq: 13.5, amp: 1.25, jitter: 0.65, curl: 0.3, splay: 0.6, bend: 52, sway: 18, enter: 0.3, follow: 18, linger: 99, dur: 99, elong: 1.32, scrub: 14 },
   { freq: 19, amp: 1.35, jitter: 0.9, curl: 0.34, splay: 0.7, bend: 58, sway: 22, enter: 0.22, follow: 24, linger: 99, dur: 99, elong: 1.4, scrub: 17 },
+  // 7: letting go. Slow, almost ashamed.
+  { freq: 0.8, amp: 0.25, jitter: 0, curl: 0.35, splay: 0, bend: 30, sway: 3, enter: 2.6, follow: 3, linger: 0, dur: 0, elong: 1.2, scrub: 0 },
 ];
 
 /** Gentle, fade-in version for reduced motion. */
@@ -403,11 +406,11 @@ export class HandDirector {
 
   /**
    * @param {number} now @param {number} dt
-   * @param {{stage: number, profile: number, auto: boolean, lastPart: string|null}} ctx
+   * @param {{stage: number, profile: number, auto: boolean, lastPart: string|null, release?: boolean}} ctx
    */
   update(now, dt, ctx) {
     const target = HAND_STAGE[ctx.profile];
-    const hold = ctx.stage >= 4;
+    const hold = ctx.stage >= 4 && !ctx.release;
     if (ctx.auto) this.autopilot(now, ctx);
     for (const a of this.actors) a.update(now, dt, this.scene, target, hold);
   }
@@ -450,6 +453,11 @@ export class HandDirector {
   /** @param {number} now @param {boolean} reduced @param {number} stage */
   draw(now, reduced, stage) {
     for (const a of this.actors) a.draw(now, reduced, stage);
+  }
+
+  /** Everyone lets go. */
+  releaseAll() {
+    for (const a of this.actors) a.release();
   }
 
   /** Who is touching what, for the body to react to. */

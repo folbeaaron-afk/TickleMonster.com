@@ -75,6 +75,7 @@ export function restPose() {
  * @property {number} sweat   0..1
  * @property {number} asym    0..1 mouth asymmetry
  * @property {number} dark    0..1 under-eye darkness
+ * @property {number} [blackTear] 0..1 progress of the black tear down the cheek
  */
 
 const EYES = { L: { cx: 281, cy: 150, side: -1 }, R: { cx: 319, cy: 150, side: 1 } };
@@ -233,6 +234,12 @@ export class Scene {
     f.mouthClip = $('tm-clip-mouth-path');
     f.tearL = svgEl('path', { class: 'tm-tear', opacity: 0, d: 'M270 153 Q262 160 255 174 Q252 182 250 188' }, root);
     f.tearR = svgEl('path', { class: 'tm-tear', opacity: 0, d: 'M330 153 Q338 160 345 174 Q348 182 350 188' }, root);
+    // the black tear: a trail, and the drop itself
+    f.blackTrail = svgEl('path', {
+      class: 'tm-black-trail', d: 'M331 153 Q342 162 349 188', pathLength: 1,
+      'stroke-dasharray': '1 1', 'stroke-dashoffset': 1, opacity: 0,
+    }, root);
+    f.blackTear = svgEl('path', { class: 'tm-black-tear', d: 'M0 -4.6 Q3.6 1 0 4 Q-3.6 1 0 -4.6Z', opacity: 0 }, root);
     f.sweat = svgEl('g', { opacity: 0 }, root);
     for (const [x, y, s] of [[284, 138, 1], [318, 134, 0.8], [334, 146, 1.1], [266, 146, 0.7]]) {
       svgEl('path', {
@@ -328,5 +335,20 @@ export class Scene {
     f.tearL.setAttribute('opacity', (clamp(F.tears, 0, 1) * 0.9).toFixed(2));
     f.tearR.setAttribute('opacity', (clamp(F.tears - 0.15, 0, 1) * 0.9).toFixed(2));
     f.sweat.setAttribute('opacity', clamp(F.sweat, 0, 1).toFixed(2));
+
+    const bt = clamp(F.blackTear || 0, 0, 1);
+    if (bt > 0) {
+      // a point on the curve from the outer eye corner down toward the ear
+      const u = 1 - bt;
+      const x = u * u * 331 + 2 * u * bt * 342 + bt * bt * 349;
+      const y = u * u * 153 + 2 * u * bt * 162 + bt * bt * 188;
+      f.blackTear.setAttribute('transform', `translate(${r1(x)} ${r1(y)}) scale(${(0.7 + bt * 0.5).toFixed(2)})`);
+      f.blackTear.setAttribute('opacity', '0.95');
+      f.blackTrail.setAttribute('stroke-dashoffset', (1 - bt).toFixed(3));
+      f.blackTrail.setAttribute('opacity', '0.75');
+    } else {
+      f.blackTear.setAttribute('opacity', '0');
+      f.blackTrail.setAttribute('opacity', '0');
+    }
   }
 }

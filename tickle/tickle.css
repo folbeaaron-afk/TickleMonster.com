@@ -135,6 +135,62 @@
 .tm[data-phase="stopping"] .tm-hot,
 .tm[data-phase="frozen"] .tm-hot { cursor: default; }
 
+/* holding their hand */
+.tm-hold { fill: rgba(0, 0, 0, 0); stroke: none; pointer-events: all; outline: none; cursor: default; touch-action: none; }
+.tm[data-phase="play"][data-stage="3"] .tm-hold,
+.tm[data-phase="play"][data-stage="4"] .tm-hold,
+.tm[data-phase="auto"] .tm-hold,
+.tm[data-phase="stopping"] .tm-hold { cursor: pointer; }
+.tm-hold:focus-visible { stroke: rgba(230, 222, 201, 0.7); stroke-width: 2; stroke-dasharray: 5 6; }
+.tm-held { opacity: 0; transition: opacity 0.6s ease; pointer-events: none; }
+.tm-held.is-on { opacity: 1; }
+.tm[data-phase="crying"] .tm-held, .tm[data-phase="calm"] .tm-held { opacity: 0; transition-duration: 3s; }
+.tm-black-tear { fill: #0d0907; stroke: #2a1f18; stroke-width: 0.4; }
+.tm-black-trail { fill: none; stroke: #120c09; stroke-width: 1.6; stroke-linecap: round; }
+.tm[data-phase="crying"] .tm-hot,
+.tm[data-phase="calm"] .tm-hot { cursor: default; }
+.tm[data-phase="crying"] .tm-scene,
+.tm[data-phase="calm"] .tm-scene { animation: tm-push 24s linear forwards; animation-play-state: paused; }
+.tm[data-phase="crying"] .tm-headline, .tm[data-phase="calm"] .tm-headline { opacity: 0; }
+
+/* after the quiet ending: no title card */
+.tm-after {
+  position: fixed;
+  left: 50%;
+  bottom: calc(max(12px, env(safe-area-inset-bottom)) + 58px);
+  transform: translateX(-50%);
+  z-index: 20;
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  text-align: center;
+  animation: tm-fade 3s ease 2.5s both;
+}
+.tm-after[hidden] { display: none; }
+.tm-after-line { margin: 0; color: var(--tm-dim); letter-spacing: 0.2em; font-size: 13px; }
+
+/* spread = relief */
+.tm-spread { display: grid; justify-items: center; gap: 6px; margin-top: 26px; }
+.tm-spread-line { margin: 0; color: #e9e1cb; letter-spacing: 0.14em; font-size: clamp(15px, 3vw, 19px); }
+.tm-spread-sub { margin: 0; color: var(--tm-dim); letter-spacing: 0.14em; font-size: 13px; }
+.tm-pass {
+  margin-top: 10px;
+  font-family: var(--tm-type);
+  font-size: 17px;
+  letter-spacing: 0.2em;
+  color: #2a1a12;
+  background: var(--tm-tape);
+  border: 0;
+  padding: 12px 22px 10px;
+  min-height: 46px;
+  transform: rotate(-1.5deg);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+  cursor: pointer;
+}
+.tm-pass:hover { background: #e4dab6; }
+.tm-pass:focus-visible { outline: 2px dashed var(--tm-ink); outline-offset: 5px; }
+.tm-carrier { margin: 4px 0 0; color: var(--tm-faint); letter-spacing: 0.22em; font-size: 11px; min-height: 1.4em; word-break: break-all; max-width: 90vw; }
+
 /* ---------- overlays ---------- */
 .tm-grain {
   position: absolute;

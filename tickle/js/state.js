@@ -15,6 +15,11 @@
  *   frozen   - everything holds, mid-laugh
  *   black    - cut to black
  *   title    - TICKLE MONSTER + replay
+ *
+ * The hidden ending: from stage 3 on, holding the person's hand (instead
+ * of tickling, instead of pressing STOP) for long enough lets them cry.
+ *   crying   - the hands withdraw, the laughing turns into sobbing
+ *   calm     - quiet. They're breathing. No title card.
  */
 
 /** Total tickles needed to *reach* stage i. */
@@ -36,6 +41,10 @@ export const TIMING = Object.freeze({
   freezeHold: 1.3,
   /** Hold black before the title. */
   blackHold: 2.4,
+  /** Seconds of holding their hand before they can cry. */
+  holdToCure: 3.5,
+  /** How long the crying lasts before it goes quiet. */
+  cryTime: 7,
 });
 
 /** Float tolerance for timer comparisons. */
@@ -43,7 +52,7 @@ const EPS = 1e-9;
 /** @param {number} elapsed @param {number} limit */
 const reached = (elapsed, limit) => elapsed >= limit - EPS;
 
-/** @typedef {'idle'|'play'|'auto'|'stopping'|'frozen'|'black'|'title'} Phase */
+/** @typedef {'idle'|'play'|'auto'|'stopping'|'frozen'|'black'|'title'|'crying'|'calm'} Phase */
 
 /**
  * @typedef {Object} TickleState
@@ -55,13 +64,16 @@ const reached = (elapsed, limit) => elapsed >= limit - EPS;
  * @property {number} phaseAt     time the current phase began
  * @property {boolean} stopVisible
  * @property {string|null} lastPart
+ * @property {number|null} holdingSince  time the visitor started holding their hand
  */
 
 /**
  * @typedef {{type:'TICKLE', part:string, t:number}
  *   | {type:'TICK', t:number}
  *   | {type:'STOP', t:number}
- *   | {type:'REPLAY', t:number}} TickleEvent
+ *   | {type:'REPLAY', t:number}
+ *   | {type:'HOLD_START', t:number}
+ *   | {type:'HOLD_END', t:number}} TickleEvent
  */
 
 /** @param {number} [t] @returns {TickleState} */
@@ -75,8 +87,13 @@ export function initialState(t = 0) {
     phaseAt: t,
     stopVisible: false,
     lastPart: null,
+    holdingSince: null,
   };
 }
+
+/** Can holding their hand still change anything? @param {TickleState} s */
+export const canHold = (s) =>
+  s.phase === 'auto' || s.phase === 'stopping' || (s.phase === 'play' && s.stage >= 3);
 
 /**
  * @param {TickleState} s
@@ -114,6 +131,9 @@ export function reduce(s, ev) {
 
     case 'TICK': {
       const t = ev.t;
+      if (s.holdingSince !== null && canHold(s) && reached(t - s.holdingSince, TIMING.holdToCure)) {
+        return { ...s, phase: 'crying', phaseAt: t, holdingSince: null, stopVisible: false };
+      }
       switch (s.phase) {
         case 'play':
           // The moment: the visitor stops. The hands don't.
@@ -133,6 +153,9 @@ export function reduce(s, ev) {
         case 'black':
           if (reached(t - s.phaseAt, TIMING.blackHold)) return { ...s, phase: 'title', phaseAt: t };
           return s;
+        case 'crying':
+          if (reached(t - s.phaseAt, TIMING.cryTime)) return { ...s, phase: 'calm', phaseAt: t };
+          return s;
         default:
           return s;
       }
@@ -143,8 +166,16 @@ export function reduce(s, ev) {
       return s;
 
     case 'REPLAY':
-      if (s.phase === 'title') return initialState(ev.t);
+      if (s.phase === 'title' || s.phase === 'calm') return initialState(ev.t);
       return s;
+
+    case 'HOLD_START':
+      if (s.holdingSince !== null || !canHold(s)) return s;
+      return { ...s, holdingSince: ev.t };
+
+    case 'HOLD_END':
+      if (s.holdingSince === null) return s;
+      return { ...s, holdingSince: null };
 
     default:
       return s;
