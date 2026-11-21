@@ -42,13 +42,13 @@ Everything lives in `tickle/`. All CSS is scoped under `.tm-page` / `.tm-*`, and
 
 | File | Role |
 | --- | --- |
-| `js/state.js` | **Deterministic state machine.** Pure `reduce(state, event)`. Phases: `idle → play (stages 1–4) → auto (stage 5) → stopping → frozen → black → title`, or, by holding their hand, `→ crying → calm`. All timings and click thresholds are at the top. |
+| `js/state.js` | **Deterministic state machine.** Pure `reduce(state, event)`. Phases: `idle → play (stages 1–4) → auto (stage 5) → stopping → frozen → black → title`. All timings and click thresholds are at the top. |
 | `js/scene.js` | Owns the inline SVG: applies body poses, draws the face procedurally, and maps hotspot-local ↔ scene coordinates so hands land on the exact touched point at any screen size, even while the body squirms. |
 | `js/hands.js` | Procedural hands: arm, palm, five jointed fingers, nails, knuckle creases and veins, regenerated per frame. `HAND_STAGE` defines how each stage moves. `HandDirector` decides which hand goes where, including the stage-5 autopilot. |
 | `js/person.js` | Turns stage, contact and laugh rhythm into a body pose and a face. Later stages keep the mouth laughing while the brows, eyes, tears and missing catchlights disagree. |
 | `js/laugh.js` | Seeded laugh schedule (syllables, inhales, wheezes, sobs) shared by the audio *and* the mouth, so the mouth stays in sync with the sound and keeps laughing when muted. |
 | `js/audio.js` | Web Audio. Synthesized formant laughter, room tone, drone, a dissonant tone, high whine, clock, heartbeat and bed creaks. One bus per run, so `cut()` silences everything at once (the freeze). |
-| `js/spread.js` | Carrier chain for "pass it on" (generation numbers, remembered per browser). |
+| `js/spread.js` | "Pass it on": carrier chain (generation numbers, remembered per browser) and the shared count. |
 | `js/main.js` | Input, render loop, transitions, captions, toggles, endings. |
 
 **Escalation (default):**
@@ -66,13 +66,14 @@ Each stage has a minimum dwell, so hammering the screen can't skip the build-up.
 
 **Handmade look:** the person is drawn at 15 fps (24 later) with a re-seeded displacement filter ("line boil"). The hands run at 15 fps early on, then 30–60 fps in stages 4–5, so they become *too smooth and too fast* next to everything else. Some frames in late stages hold the face for a beat. On slow devices the filters are dropped automatically after about 45 slow frames.
 
-## Hidden layers
+## Details
 
-None of these are explained on the site.
-
-- **Easter eggs in the room.** Sunny yellow wallpaper with a small tear (dark wood behind it), a smiley sticker on the headboard, a nightstand with an inhaler and a cup of pink froyo buried in sprinkles, and a note on the floor: a four-armed stick figure, "INSIDE ME". They mean nothing until people have seen the film.
-- **The other way out.** From stage 3 on, *holding* one of the person's hands (press and hold for 3.5 s, or Enter/Space on the focused hand) instead of tickling or pressing STOP makes them cry. A warm, ordinary hand appears over theirs. The pale hands let go, the laughter turns into sobbing, a single black tear runs down toward their ear, and the room goes quiet, with the clock ticking again. There's no title card, just "let it out." and "again". In stage 5 one of their hands opens now and then, and one caption says "(one of their hands is open)". That's the only hint.
-- **Spread = relief** (`js/spread.js`). Reaching the title makes this browser a *carrier*. Links passed on carry `?g=N`, so the next person becomes carrier N+1 and the chain is visible ("carrier no. 0008"). Until the visitor passes it on, the tab title laughs when they look away, a faint giggle plays every half minute or so on the end screen, and a return visit says "(you never passed it on.)". Passing it on changes the end screen to "better. for now." Finding the other way out also cures it. It's all static, with no server. A shared counter of all carriers would need a tiny API; `SPREAD_ENDPOINT` is reserved for that.
+- **Anywhere on the body.** Besides the main spots (neck, ribs, stomach, feet), the arms, hands, legs, hips, chest and face are all clickable. The hand lands where you touched, and the body reacts to each area differently.
+- **The page eggs you on.** The headline changes with every stage: "GO AHEAD. THEY’RE TICKLISH." → "SEE? KEEP GOING." → "KEEP GOING." → "A LITTLE MORE." → "DON’T STOP." Once the hands take over, it says "YOU CAN STOP NOW."
+- **Set dressing.** Sunny yellow wallpaper, a smiley sticker on the headboard, and a nightstand with an inhaler and a cup of pink froyo in sprinkles. Nothing on the site refers to the film’s plot.
+- **Pass it on** (`js/spread.js`). The end screen shows the visitor’s own link with a **copy link** button (plus **share…** on phones), and the worldwide number of people who have passed it on. Each link carries `?g=N`, so the next person becomes carrier N+1. Until a visitor passes it on, the tab title laughs when they look away, a faint giggle plays now and then on the end screen, and a return visit says "(you never passed it on.)". After they pass it on, it says "better. for now."
+- **The count** uses a free public counter service (`COUNTER` in `js/spread.js`; currently abacus.jasoncameron.dev). It stores a single number and no personal data. Each browser adds one, the first time it passes the link on. If the service is down, the line just doesn't appear. To use your own counter later, change `COUNTER`.
+- **iPhone sound.** Sound starts on the first tap, which iPhones only allow when the finger lifts. The page also asks to be treated like a music player (`navigator.audioSession` plus a silent looping `<audio>`), so it plays even when the phone's silent switch is on.
 
 ## Accessibility
 

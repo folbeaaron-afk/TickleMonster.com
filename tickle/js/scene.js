@@ -34,6 +34,14 @@ export const PARTS = {
   stomach: { roots: [[710, 600], [-110, 620]], mirror: 'neck', gaze: [0, 1], label: 'stomach' },
   footL: { roots: [[150, 1010], [-110, 940]], mirror: 'footR', gaze: [-0.15, 1], label: 'feet' },
   footR: { roots: [[450, 1010], [710, 940]], mirror: 'footL', gaze: [0.15, 1], label: 'feet' },
+  // the rest of them: anywhere you touch, something reaches for it
+  armL: { roots: [[-110, 440], [-110, 260]], mirror: 'armR', gaze: [-0.8, 1], label: 'arm' },
+  armR: { roots: [[710, 440], [710, 260]], mirror: 'armL', gaze: [0.8, 1], label: 'arm' },
+  legL: { roots: [[-110, 700], [150, 1010]], mirror: 'legR', gaze: [-0.3, 1], label: 'leg' },
+  legR: { roots: [[710, 700], [450, 1010]], mirror: 'legL', gaze: [0.3, 1], label: 'leg' },
+  hips: { roots: [[-110, 540], [710, 540]], mirror: 'neck', gaze: [0, 1], label: 'hips' },
+  torso: { roots: [[710, 250], [-110, 250]], mirror: 'stomach', gaze: [0, 1], label: 'chest' },
+  head: { roots: [[-120, 130], [720, 130]], mirror: 'stomach', gaze: [0, 0], label: 'face' },
 };
 export const PART_NAMES = Object.keys(PARTS);
 
@@ -75,7 +83,6 @@ export function restPose() {
  * @property {number} sweat   0..1
  * @property {number} asym    0..1 mouth asymmetry
  * @property {number} dark    0..1 under-eye darkness
- * @property {number} [blackTear] 0..1 progress of the black tear down the cheek
  */
 
 const EYES = { L: { cx: 281, cy: 150, side: -1 }, R: { cx: 319, cy: 150, side: 1 } };
@@ -92,16 +99,25 @@ export class Scene {
       legL: $('tm-legL'), legR: $('tm-legR'), footL: $('tm-footL'), footR: $('tm-footR'),
       hands: $('tm-hands'),
     };
-    /** @type {Record<string, {el: SVGGraphicsElement, cx: number, cy: number, rx: number, ry: number}>} */
+    /** @type {Record<string, {el: SVGGraphicsElement, cx: number, cy: number, rx: number, ry: number, ellipse: boolean}>} */
     this.hot = {};
     svg.querySelectorAll('.tm-hot').forEach((node) => {
       const h = /** @type {SVGGraphicsElement} */ (node);
       const part = h.getAttribute('data-part') || '';
-      this.hot[part] = {
-        el: h,
-        cx: Number(h.getAttribute('cx')), cy: Number(h.getAttribute('cy')),
-        rx: Number(h.getAttribute('rx')), ry: Number(h.getAttribute('ry')),
-      };
+      if (h.tagName.toLowerCase() === 'ellipse') {
+        this.hot[part] = {
+          el: h, ellipse: true,
+          cx: Number(h.getAttribute('cx')), cy: Number(h.getAttribute('cy')),
+          rx: Number(h.getAttribute('rx')), ry: Number(h.getAttribute('ry')),
+        };
+      } else {
+        // a body-shaped area: use its bounding box, but stay near the middle
+        const b = h.getBBox();
+        this.hot[part] = {
+          el: h, ellipse: false,
+          cx: b.x + b.width / 2, cy: b.y + b.height / 2, rx: b.width * 0.25, ry: b.height * 0.3,
+        };
+      }
     });
     this.filters = {
       boilNoise: $('tm-boil-noise'), boilMap: $('tm-boil-map'),
@@ -131,6 +147,8 @@ export class Scene {
     const m = ctm.inverse();
     let x = m.a * clientX + m.c * clientY + m.e;
     let y = m.b * clientX + m.d * clientY + m.f;
+    // a click inside a body-shaped area is already exactly where it should be
+    if (!h.ellipse) return /** @type {[number, number]} */ ([x, y]);
     const nx = (x - h.cx) / h.rx;
     const ny = (y - h.cy) / h.ry;
     const d = Math.hypot(nx, ny);
@@ -144,7 +162,8 @@ export class Scene {
   /** A deterministic point inside a hotspot. u, v in [-1, 1]. */
   localPoint(part, u = 0, v = 0) {
     const h = this.hot[part];
-    return /** @type {[number, number]} */ ([h.cx + u * h.rx * 0.55, h.cy + v * h.ry * 0.55]);
+    const k = h.ellipse ? 0.55 : 0.4;
+    return /** @type {[number, number]} */ ([h.cx + u * h.rx * k, h.cy + v * h.ry * k]);
   }
 
   /* ---------------- line boil ---------------- */
@@ -234,12 +253,6 @@ export class Scene {
     f.mouthClip = $('tm-clip-mouth-path');
     f.tearL = svgEl('path', { class: 'tm-tear', opacity: 0, d: 'M270 153 Q262 160 255 174 Q252 182 250 188' }, root);
     f.tearR = svgEl('path', { class: 'tm-tear', opacity: 0, d: 'M330 153 Q338 160 345 174 Q348 182 350 188' }, root);
-    // the black tear: a trail, and the drop itself
-    f.blackTrail = svgEl('path', {
-      class: 'tm-black-trail', d: 'M331 153 Q342 162 349 188', pathLength: 1,
-      'stroke-dasharray': '1 1', 'stroke-dashoffset': 1, opacity: 0,
-    }, root);
-    f.blackTear = svgEl('path', { class: 'tm-black-tear', d: 'M0 -4.6 Q3.6 1 0 4 Q-3.6 1 0 -4.6Z', opacity: 0 }, root);
     f.sweat = svgEl('g', { opacity: 0 }, root);
     for (const [x, y, s] of [[284, 138, 1], [318, 134, 0.8], [334, 146, 1.1], [266, 146, 0.7]]) {
       svgEl('path', {
@@ -335,20 +348,5 @@ export class Scene {
     f.tearL.setAttribute('opacity', (clamp(F.tears, 0, 1) * 0.9).toFixed(2));
     f.tearR.setAttribute('opacity', (clamp(F.tears - 0.15, 0, 1) * 0.9).toFixed(2));
     f.sweat.setAttribute('opacity', clamp(F.sweat, 0, 1).toFixed(2));
-
-    const bt = clamp(F.blackTear || 0, 0, 1);
-    if (bt > 0) {
-      // a point on the curve from the outer eye corner down toward the ear
-      const u = 1 - bt;
-      const x = u * u * 331 + 2 * u * bt * 342 + bt * bt * 349;
-      const y = u * u * 153 + 2 * u * bt * 162 + bt * bt * 188;
-      f.blackTear.setAttribute('transform', `translate(${r1(x)} ${r1(y)}) scale(${(0.7 + bt * 0.5).toFixed(2)})`);
-      f.blackTear.setAttribute('opacity', '0.95');
-      f.blackTrail.setAttribute('stroke-dashoffset', (1 - bt).toFixed(3));
-      f.blackTrail.setAttribute('opacity', '0.75');
-    } else {
-      f.blackTear.setAttribute('opacity', '0');
-      f.blackTrail.setAttribute('opacity', '0');
-    }
   }
 }

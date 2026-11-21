@@ -13,7 +13,7 @@ import { clamp, damp, lerp, mulberry32, noise1, stepNoise } from './util.js';
 /** @param {Partial<Face>} f @returns {Face} */
 const face = (f) => ({
   smile: 0, open: 0, browIn: 0, browOut: 0, eyeL: 0.62, eyeR: 0.62, gazeX: 0, gazeY: 0,
-  pupil: 0.55, glint: 1, tears: 0, flush: 0, sweat: 0, asym: 0, dark: 0, blackTear: 0, ...f,
+  pupil: 0.55, glint: 1, tears: 0, flush: 0, sweat: 0, asym: 0, dark: 0, ...f,
 });
 
 /** Between tickles. Stage 3+: no smile, just staring up at you. */
@@ -34,13 +34,6 @@ const LAUGHING = [
   face({ smile: 1, open: 0.85, browIn: 1, eyeL: 1.12, eyeR: 1.04, pupil: 0.28, glint: 0.5, tears: 0.75, flush: 0.65, sweat: 0.6, asym: 0.35, dark: 0.55 }),
   face({ smile: 1.05, open: 0.95, browIn: 1, eyeL: 1.22, eyeR: 1.16, pupil: 0.12, glint: 0.05, tears: 1, flush: 0.75, sweat: 0.85, asym: 0.5, dark: 0.85 }),
 ];
-/** The hidden ending. Crying for real: the catchlight comes back. */
-const CRYING = face({ smile: -0.4, open: 0.3, browIn: 1, eyeL: 0.12, eyeR: 0.14, pupil: 0.5, glint: 1, tears: 1, flush: 0.7, sweat: 0.4, asym: 0.15, dark: 0.6 });
-/** Afterwards: eyes closed, breathing. */
-const CALM = face({ smile: 0.04, open: 0.05, browIn: 0.2, eyeL: 0.03, eyeR: 0.03, pupil: 0.55, glint: 1, tears: 0.5, flush: 0.2, sweat: 0.1, dark: 0.4 });
-/** Where the eyes go when you hold a hand. */
-const HAND_GAZE = { L: [-0.8, 1], R: [0.8, 1] };
-
 /** How much they look straight up at the viewer, per stage. */
 const STARE = [0, 0, 0.1, 0.85, 0.75, 1];
 const BLINK_RATE = [0.28, 0.3, 0.35, 0.15, 0.06, 0];
@@ -72,8 +65,7 @@ export class Person {
   /**
    * @param {number} now @param {number} dt
    * @param {{stage: number, frantic: boolean, contacts: {part: string, level: number, side: number}[],
-   *   laughOpen: number, laughIn: number, laughing: boolean, hover: string|null, reduced: boolean, t5: number,
-   *   mode?: 'crying'|'calm'|null, modeT?: number, holdP?: number, holdHand?: 'L'|'R'|null}} c
+   *   laughOpen: number, laughIn: number, laughing: boolean, hover: string|null, reduced: boolean, t5: number}} c
    */
   update(now, dt, c) {
     const st = c.stage;
@@ -108,6 +100,29 @@ export class Person {
           T.legRS -= 0.13 * kk; T.legR -= 3 * kk; T.bodyY -= 4 * kk;
           T.footR += 18 * noise1(now * (3 + 4 * k), 6) * kk;
           break;
+        case 'armL':
+          T.armL -= 11 * kk; T.torsoRot += 2 * kk; T.bodyX += 5 * kk; T.headRot += 4 * kk;
+          break;
+        case 'armR':
+          T.armR += 11 * kk; T.torsoRot -= 2 * kk; T.bodyX -= 5 * kk; T.headRot -= 4 * kk;
+          break;
+        case 'legL':
+          T.legLS -= 0.08 * kk; T.legL += 4 * kk; T.bodyX += 4 * kk;
+          break;
+        case 'legR':
+          T.legRS -= 0.08 * kk; T.legR -= 4 * kk; T.bodyX -= 4 * kk;
+          break;
+        case 'hips':
+          T.bodyY -= 5 * kk; T.torsoY += 2 * kk; T.legLS -= 0.05 * kk; T.legRS -= 0.05 * kk;
+          T.bodyX += noise1(now * (2 + 3 * k), 9) * 6 * kk;
+          break;
+        case 'torso':
+          T.chestY -= 0.03 * kk; T.chestX -= 0.02 * kk; T.headY += 4 * kk; T.armL -= 6 * kk; T.armR += 6 * kk;
+          break;
+        case 'head':
+          // turning away from it, chin tucked, shoulder up
+          T.headRot -= (ct.side || 1) * 16 * kk; T.headY += 3 * kk; T.chestX += 0.015 * kk;
+          break;
       }
     }
     const Lc = clamp(L, 0, 1.2);
@@ -121,8 +136,8 @@ export class Person {
     T.footR += noise1(now * f * 1.5, 13) * 6 * k * Lc;
 
     // stage 5: some seconds the head locks, perfectly still, looking at you
-    const lock = st === 5 && !c.mode && Math.sin(c.t5 * 1.1) > 0.55;
-    if (st >= 4 && !c.mode) {
+    const lock = st === 5 && Math.sin(c.t5 * 1.1) > 0.55;
+    if (st >= 4) {
       // trying to get away: jerky, held, then a sudden shift
       const away = c.contacts.reduce((s, ct) => s - ct.side * ct.level, 0);
       T.bodyX += (stepNoise(now * 3.5, 4) * 10 + away * 6) * Lc;
@@ -131,11 +146,6 @@ export class Person {
       T.armR += stepNoise(now * 2.5, 15) * 6 * Lc;
     }
     if (lock) T.headRot = 0;
-    // stage 5: every few seconds one hand opens and drifts outward. A hint.
-    if (st === 5 && !c.mode) {
-      const reach = Math.pow(Math.max(0, Math.sin(now * ((Math.PI * 2) / 4.2))), 6);
-      T.armR -= 7 * reach;
-    }
     T.bodyX = clamp(T.bodyX, -30, 30);
 
     // the laugh shakes the whole body
@@ -156,11 +166,10 @@ export class Person {
     this.jerk = Math.abs(P.bodyX + P.torsoRot - before) / Math.max(dt, 0.001);
 
     // breathing (not damped)
-    const br = c.mode === 'calm' ? 0.17 : c.mode === 'crying' ? 0.5 : [0.22, 0.25, 0.32, 0.45, 0.6, 0.75][st];
-    const bAmp = c.mode === 'calm' ? 0.016 : 0.008 + st * 0.003;
-    this.breath = Math.sin(now * Math.PI * 2 * br) * bAmp;
+    const br = [0.22, 0.25, 0.32, 0.45, 0.6, 0.75][st];
+    this.breath = Math.sin(now * Math.PI * 2 * br) * (0.008 + st * 0.003);
     // stage 5 tremor
-    this.tremor = st === 5 && !c.reduced && !c.mode ? [stepNoise(now * 30, 7) * 0.7, stepNoise(now * 28, 8) * 0.8] : [0, 0];
+    this.tremor = st === 5 && !c.reduced ? [stepNoise(now * 30, 7) * 0.7, stepNoise(now * 28, 8) * 0.8] : [0, 0];
 
     this.updateFace(now, dt, c, st, lock);
   }
@@ -188,27 +197,15 @@ export class Person {
     /** @type {Face} */
     const T = /** @type {any} */ ({});
     for (const key of /** @type {(keyof Face)[]} */ (Object.keys(R))) T[key] = lerp(R[key], G[key], w);
-    if (c.mode) Object.assign(T, c.mode === 'crying' ? CRYING : CALM);
-    const holdP = c.mode ? 0 : c.holdP || 0;
-    if (holdP > 0) {
-      // someone is holding their hand. The laugh starts to give way.
-      T.smile *= 1 - 0.7 * holdP;
-      T.tears = Math.max(T.tears, 0.45 + 0.55 * holdP);
-      T.browIn = Math.max(T.browIn, 0.85);
-      T.glint = lerp(T.glint, 1, holdP);
-      T.pupil = lerp(T.pupil, 0.5, holdP);
-      T.eyeL = lerp(T.eyeL, 0.75, holdP);
-      T.eyeR = lerp(T.eyeR, 0.72, holdP);
-    }
 
     // the mouth follows the laugh rhythm
-    T.open = T.open * (w > 0.2 || c.mode === 'crying' ? 0.35 + 0.65 * c.laughOpen : 1) + c.laughIn * 0.25;
-    if (st <= 2 && !c.mode) {
+    T.open = T.open * (w > 0.2 ? 0.35 + 0.65 * c.laughOpen : 1) + c.laughIn * 0.25;
+    if (st <= 2) {
       // a real laugh: cheeks push the eyes shut on each "ha"
       T.eyeL -= c.laughOpen * 0.12 * w;
       T.eyeR -= c.laughOpen * 0.12 * w;
     }
-    if (st === 4 && !c.mode && holdP < 0.2 && w > 0.5 && noise1(now * 0.7, 11) > 0.45) {
+    if (st === 4 && w > 0.5 && noise1(now * 0.7, 11) > 0.45) {
       // squeezed shut, like it hurts
       T.eyeL = 0.06;
       T.eyeR = 0.1;
@@ -239,14 +236,9 @@ export class Person {
     const stare = lock ? 1 : STARE[st];
     T.gazeX = lerp(gx, 0, stare);
     T.gazeY = lerp(gy, 0, stare);
-    if (holdP > 0 && c.holdHand) {
-      // they look down at the hand holding theirs
-      T.gazeX = lerp(T.gazeX, HAND_GAZE[c.holdHand][0], Math.min(1, holdP * 2));
-      T.gazeY = lerp(T.gazeY, HAND_GAZE[c.holdHand][1], Math.min(1, holdP * 2));
-    }
 
     // blinking; at the end, they stop blinking
-    const rate = c.mode || holdP > 0 ? 0 : BLINK_RATE[st];
+    const rate = BLINK_RATE[st];
     if (rate > 0 && now > this.nextBlink) {
       this.blinkUntil = now + 0.13;
       this.nextBlink = now + (1 / rate) * (0.5 + this.rng());
@@ -260,8 +252,6 @@ export class Person {
       const r = key === 'gazeX' || key === 'gazeY' ? 22 : key === 'open' ? 24 : fr;
       F[key] = damp(F[key], T[key], r, dt);
     }
-    // the black tear runs once they've started crying, and stays
-    F.blackTear = c.mode === 'calm' ? 1 : c.mode === 'crying' ? clamp(((c.modeT || 0) - 1.4) / 2.6, 0, 1) : 0;
     this.drawnFace = blinking ? { ...F, eyeL: 0, eyeR: 0 } : F;
   }
 }

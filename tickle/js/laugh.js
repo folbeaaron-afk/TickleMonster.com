@@ -19,7 +19,7 @@ import { mulberry32, clamp } from './util.js';
  * @property {number} stage
  */
 
-/** Index = stage (6 = after STOP, 7 = crying). */
+/** Index = stage (6 = after STOP). */
 const LAUGH = [
   null,
   { min: 2, max: 4, syl: 0.11, gap: 0.06, pitch: 300, pv: 0.08, rise: 0.05, amp: 0.32, inhale: 0.26, inAmp: 0.06, pause: 0.6, vowels: ['e', 'e', 'a'], breath: 0.25, crack: 0, wheeze: 0, sob: 0 },
@@ -28,8 +28,6 @@ const LAUGH = [
   { min: 6, max: 11, syl: 0.1, gap: 0.025, pitch: 415, pv: 0.22, rise: 0.2, amp: 0.62, inhale: 0.42, inAmp: 0.3, pause: 0.12, vowels: ['a', 'i', 'i', 'e'], breath: 0.52, crack: 0.2, wheeze: 0.2, sob: 0.04 },
   { min: 7, max: 13, syl: 0.1, gap: 0.02, pitch: 435, pv: 0.3, rise: 0.25, amp: 0.66, inhale: 0.5, inAmp: 0.38, pause: 0.06, vowels: ['a', 'i', 'e'], breath: 0.6, crack: 0.28, wheeze: 0.24, sob: 0.18 },
   { min: 9, max: 15, syl: 0.085, gap: 0.015, pitch: 470, pv: 0.34, rise: 0.3, amp: 0.72, inhale: 0.4, inAmp: 0.42, pause: 0.03, vowels: ['i', 'a', 'i'], breath: 0.65, crack: 0.35, wheeze: 0.22, sob: 0.22 },
-  // 7: crying. Finally.
-  { min: 2, max: 4, syl: 0.2, gap: 0.08, pitch: 330, pv: 0.12, rise: -0.15, amp: 0.5, inhale: 0.5, inAmp: 0.34, pause: 0.5, vowels: ['a', 'e'], breath: 0.7, crack: 0.15, wheeze: 0, sob: 1 },
 ];
 
 export class LaughDriver {
@@ -53,7 +51,7 @@ export class LaughDriver {
   /**
    * @param {number} now
    * @param {boolean} active someone is being tickled
-   * @param {number} stage 1..7
+   * @param {number} stage 1..6
    */
   update(now, active, stage) {
     if (active && stage > 0) {
@@ -67,7 +65,7 @@ export class LaughDriver {
 
   /** @param {number} start @param {number} stage */
   bout(start, stage) {
-    const S = /** @type {NonNullable<typeof LAUGH[number]>} */ (LAUGH[clamp(stage, 1, 7)]);
+    const S = /** @type {NonNullable<typeof LAUGH[number]>} */ (LAUGH[clamp(stage, 1, 6)]);
     const r = this.rng;
     const n = S.min + Math.floor(r() * (S.max - S.min + 1));
     let t = start;

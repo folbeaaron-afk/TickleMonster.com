@@ -31,7 +31,7 @@ const FORMANTS = {
   i: [[320, 7, 0.9], [2450, 13, 0.5], [3250, 13, 0.25]],
 };
 
-/** Ambient target levels per stage (index 6 = after STOP, 7 = after crying). */
+/** Ambient target levels per stage (index 6 = after STOP). */
 const AMBIENT = [
   { room: 0.05, drone: 0.0, dis: 0, whine: 0, bend: 1 },
   { room: 0.05, drone: 0.012, dis: 0, whine: 0, bend: 1 },
@@ -40,8 +40,6 @@ const AMBIENT = [
   { room: 0.04, drone: 0.075, dis: 0.018, whine: 0.0055, bend: 0.97 },
   { room: 0.035, drone: 0.09, dis: 0.026, whine: 0.008, bend: 0.94 },
   { room: 0.03, drone: 0.11, dis: 0.034, whine: 0.011, bend: 0.9 },
-  // 7: after crying. Just the room again.
-  { room: 0.05, drone: 0.0, dis: 0, whine: 0, bend: 1 },
 ];
 
 function loadMuted() {
@@ -74,13 +72,55 @@ export class AudioEngine {
 
   /** Call from inside a pointer / key handler. */
   unlock() {
+    this.iosUnmute();
     if (!this.ctx) {
       const AC = window.AudioContext || /** @type {any} */ (window).webkitAudioContext;
       if (!AC) return;
       this.ctx = new AC();
       this.build();
     }
-    if (this.ctx.state === 'suspended') this.ctx.resume().catch(() => {});
+    if (this.ctx.state !== 'running') this.ctx.resume().catch(() => {});
+  }
+
+  /**
+   * iPhones silence Web Audio when the ring/silent switch is on silent.
+   * Asking for "playback" audio (Safari 16.4+), and playing a silent
+   * looping <audio> element (older iOS), moves the page into the same
+   * category as a music player, which plays regardless of the switch.
+   */
+  iosUnmute() {
+    try {
+      const session = /** @type {any} */ (navigator).audioSession;
+      if (session && session.type !== 'playback') session.type = 'playback';
+    } catch {
+      /* not supported */
+    }
+    if (this.silentEl) {
+      if (this.silentEl.paused) this.silentEl.play().catch(() => {});
+      return;
+    }
+    try {
+      // 0.5 s of 8-bit silence, built in memory
+      const rate = 8000;
+      const n = rate / 2;
+      const buf = new ArrayBuffer(44 + n);
+      const v = new DataView(buf);
+      const str = (o, t) => [...t].forEach((ch, i) => v.setUint8(o + i, ch.charCodeAt(0)));
+      str(0, 'RIFF'); v.setUint32(4, 36 + n, true); str(8, 'WAVE'); str(12, 'fmt ');
+      v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+      v.setUint32(24, rate, true); v.setUint32(28, rate, true); v.setUint16(32, 1, true); v.setUint16(34, 8, true);
+      str(36, 'data'); v.setUint32(40, n, true);
+      for (let i = 0; i < n; i++) v.setUint8(44 + i, 128);
+      const el = document.createElement('audio');
+      el.src = URL.createObjectURL(new Blob([buf], { type: 'audio/wav' }));
+      el.loop = true;
+      el.setAttribute('playsinline', '');
+      el.setAttribute('aria-hidden', 'true');
+      this.silentEl = el;
+      el.play().catch(() => {});
+    } catch {
+      /* fine: desktop browsers don't need it */
+    }
   }
 
   build() {
@@ -231,10 +271,10 @@ export class AudioEngine {
     this.stage = stage;
     const c = this.ctx;
     if (!c || !this.run) return;
-    const A = AMBIENT[Math.min(stage, 7)];
+    const A = AMBIENT[Math.min(stage, 6)];
     const amb = this.run.amb;
     const now = c.currentTime;
-    const tc = instant ? 0.01 : stage === 7 ? 2.5 : 1.4;
+    const tc = instant ? 0.01 : 1.4;
     amb.roomG.gain.setTargetAtTime(A.room, now, tc);
     amb.droneG.gain.setTargetAtTime(A.drone, now, tc);
     amb.disG.gain.setTargetAtTime(A.dis, now, tc);
@@ -261,19 +301,19 @@ export class AudioEngine {
     return c.currentTime + Math.max(0, delay);
   }
 
-  /** Clock ticks early on (and again once it's over); a heartbeat later. Call every frame. @param {number} stage */
+  /** Clock ticks early on; a heartbeat later. Call every frame. @param {number} stage */
   update(stage) {
     const c = this.ctx;
     if (!c || !this.run || c.state !== 'running') return;
     const now = c.currentTime;
-    if (stage <= 2 || stage === 7) {
+    if (stage <= 2) {
       if (this.nextTick < now) this.nextTick = now + 0.05;
       while (this.nextTick < now + 0.2) {
         this.tick(this.nextTick);
         this.nextTick += 1;
       }
     }
-    if (stage >= 4 && stage <= 6) {
+    if (stage >= 4) {
       const interval = stage >= 6 ? 0.42 : stage === 5 ? 0.5 : 0.62;
       if (this.nextBeat < now) this.nextBeat = now + 0.05;
       while (this.nextBeat < now + 0.2) {
@@ -476,26 +516,6 @@ export class AudioEngine {
     }
   }
 
-  /** A black tear hits the floor. */
-  sizzle() {
-    const c = this.ctx;
-    if (!c || !this.run || c.state !== 'running') return;
-    const when = c.currentTime + 0.01;
-    const n = c.createBufferSource();
-    n.buffer = /** @type {AudioBuffer} */ (this.noise);
-    n.loop = true;
-    const hp = c.createBiquadFilter();
-    hp.type = 'highpass';
-    hp.frequency.value = 2600;
-    const g = c.createGain();
-    g.gain.setValueAtTime(0.0001, when);
-    g.gain.exponentialRampToValueAtTime(0.14, when + 0.02);
-    g.gain.exponentialRampToValueAtTime(0.0001, when + 0.7);
-    n.connect(hp).connect(g).connect(this.run.dry);
-    n.start(when, this.rng());
-    n.stop(when + 0.75);
-  }
-
   /** The freeze: silence, now. */
   cut() {
     const c = this.ctx;
@@ -542,36 +562,6 @@ export class AudioEngine {
     });
     this.run = saved;
     this.giggleOut = level;
-  }
-
-  /**
-   * Let the current sound fall away (including laughs already scheduled)
-   * and carry on on a fresh bus.
-   * @param {number} fade seconds
-   */
-  breakRun(fade) {
-    const c = this.ctx;
-    if (!c || !this.run) return;
-    const old = this.run;
-    const now = c.currentTime;
-    old.out.gain.cancelScheduledValues(now);
-    old.out.gain.setValueAtTime(old.out.gain.value, now);
-    old.out.gain.linearRampToValueAtTime(0, now + fade);
-    setTimeout(() => {
-      try {
-        old.out.disconnect();
-      } catch {
-        /* gone */
-      }
-      for (const src of old.sources) {
-        try {
-          src.stop();
-        } catch {
-          /* not started */
-        }
-      }
-    }, fade * 1000 + 60);
-    this.newRun();
   }
 
   /** Back to the start. */

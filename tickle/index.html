@@ -74,21 +74,6 @@
           <stop offset="0" stop-color="#1a120a" stop-opacity="0.45"/>
           <stop offset="1" stop-color="#1a120a" stop-opacity="0.1"/>
         </linearGradient>
-        <linearGradient id="tm-warm-fade" x1="0" y1="1" x2="0" y2="0">
-          <stop offset="0" stop-color="#b98468" stop-opacity="0"/>
-          <stop offset="0.55" stop-color="#b98468" stop-opacity="1"/>
-        </linearGradient>
-        <!-- the visitor's hand: warm, ordinary, the opposite of the others -->
-        <g id="tm-held-shape">
-          <path d="M136 620 C142 588 156 552 166 522 L194 528 C186 560 178 592 176 620 Z" fill="url(#tm-warm-fade)"/>
-          <ellipse cx="168" cy="485" rx="3.8" ry="9.5" fill="#c4927a" stroke="#4a2c20" stroke-width="1.1" transform="rotate(-8 168 485)"/>
-          <ellipse cx="175.5" cy="481" rx="3.9" ry="10.5" fill="#c4927a" stroke="#4a2c20" stroke-width="1.1"/>
-          <ellipse cx="183" cy="481.5" rx="3.9" ry="10" fill="#c4927a" stroke="#4a2c20" stroke-width="1.1"/>
-          <ellipse cx="190" cy="486" rx="3.5" ry="8.5" fill="#c4927a" stroke="#4a2c20" stroke-width="1.1" transform="rotate(10 190 486)"/>
-          <path d="M162 492 C160 506 162 520 170 528 C178 534 190 532 196 522 C200 512 198 498 194 490 C184 486 172 486 162 492 Z" fill="#c4927a" stroke="#4a2c20" stroke-width="1.2"/>
-          <ellipse cx="160" cy="512" rx="4.2" ry="10" fill="#c4927a" stroke="#4a2c20" stroke-width="1.1" transform="rotate(28 160 512)"/>
-          <path d="M170 500 Q178 503 188 500" fill="none" stroke="#8d5c48" stroke-width="0.9"/>
-        </g>
         <pattern id="tm-boards" patternUnits="userSpaceOnUse" width="90" height="900">
           <rect width="90" height="900" fill="#1d1713"/>
           <rect x="88" width="2" height="900" fill="#0f0c0a"/>
@@ -150,9 +135,6 @@
       <g id="tm-wall">
         <rect x="-200" y="-200" width="1000" height="240" fill="url(#tm-wallpaper)"/>
         <rect x="-200" y="-200" width="1000" height="240" fill="url(#tm-wall-shade)"/>
-        <!-- a small tear; dark wood behind it -->
-        <path d="M486 6 L493 3 L499 9 L505 5 L509 14 L503 22 L506 29 L497 31 L491 25 L485 27 L483 17 Z" fill="#3b2416" stroke="#8a6a26" stroke-width="0.9"/>
-        <path d="M499 9 L505 5 L509 14 L503 22 Z" fill="#e8d07a" opacity="0.85"/>
         <rect x="-200" y="34" width="1000" height="7" fill="#c9b47c" stroke="#5a4a2c" stroke-width="1"/>
       </g>
       <!-- the nightstand -->
@@ -173,19 +155,6 @@
           <rect x="562" y="128" width="22" height="11" rx="3" fill="#6f8fa6" stroke="#22303a" stroke-width="1.1"/>
           <rect x="580" y="124" width="9" height="19" rx="2.5" fill="#d8d4cb" stroke="#22303a" stroke-width="1.1"/>
         </g>
-      </g>
-      <!-- a piece of paper on the floor. someone drew on it. -->
-      <g id="tm-note" transform="rotate(-9 34 664)">
-        <rect x="8" y="624" width="54" height="76" fill="#e6dfcb" stroke="#6b6250" stroke-width="0.8"/>
-        <path d="M14 632 L56 632 M14 637 L48 637 M14 642 L52 642" stroke="#9a9384" stroke-width="0.8"/>
-        <g fill="none" stroke="#3d3a36" stroke-width="0.9" stroke-linecap="round" opacity="0.85">
-          <circle cx="35" cy="655" r="5"/>
-          <path d="M31 656 L32 657.5 L33 656 L34 657.5 L35 656 L36 657.5 L37 656 L38 657.5 L39 656"/>
-          <path d="M35 660 L35 676 M35 676 L30 686 M35 676 L40 686"/>
-          <path d="M35 663 L24 658 M35 663 L46 658 M35 667 L23 672 M35 667 L47 672"/>
-          <path d="M24 658 l-2 -2 M24 658 l-3 0 M24 658 l-2 2 M46 658 l2 -2 M46 658 l3 0 M46 658 l2 2 M23 672 l-2 -2 M23 672 l-3 1 M23 672 l-1 3 M47 672 l2 -2 M47 672 l3 1 M47 672 l1 3"/>
-        </g>
-        <text x="35" y="695" text-anchor="middle" font-family="Special Elite, Courier New, monospace" font-size="6.4" fill="#3d3a36" letter-spacing="0.4">INSIDE ME</text>
       </g>
       <g id="tm-bed">
         <rect x="68" y="30" width="464" height="874" rx="6" fill="#3a2a1f" class="tm-ink"/>
@@ -231,6 +200,7 @@
 
           <g id="tm-legL">
             <use href="#tm-leg-shape"/>
+            <path class="tm-hot tm-area" data-part="legL" d="M212 528 C212 600 222 690 234 790 L292 792 C294 700 298 620 300 540 Z" aria-hidden="true"/>
             <g id="tm-footL">
               <path class="tm-sock-a" d="M236 784 C228 806 226 830 236 852 C246 870 272 870 282 852 C292 830 292 806 288 784 Z"/>
               <path d="M236 784 L288 784 L289 800 L235 800 Z" fill="#8e897d" class="tm-ink"/>
@@ -240,6 +210,7 @@
           </g>
           <g id="tm-legR">
             <use href="#tm-leg-shape" transform="matrix(-1 0 0 1 600 0)"/>
+            <path class="tm-hot tm-area" data-part="legR" d="M212 528 C212 600 222 690 234 790 L292 792 C294 700 298 620 300 540 Z" transform="matrix(-1 0 0 1 600 0)" aria-hidden="true"/>
             <g id="tm-footR">
               <path class="tm-sock-b" d="M312 784 C308 806 308 830 318 852 C328 870 354 870 364 852 C374 830 372 806 364 784 Z"/>
               <path d="M314 806 L368 806 M311 822 L371 822 M313 838 L369 838" stroke="#d8cdb6" stroke-width="5" opacity="0.8"/>
@@ -252,17 +223,16 @@
           <path class="tm-trousers" d="M210 466 L390 466 C396 500 396 524 390 548 C360 556 330 552 300 546 C270 552 240 556 210 548 C204 524 204 500 210 466 Z"/>
           <path d="M300 478 L300 540" class="tm-seam"/>
           <path d="M210 486 L390 486" class="tm-seam" opacity="0.6"/>
+          <path class="tm-hot tm-area" data-part="hips" d="M210 466 L390 466 C396 500 396 524 390 548 C360 556 330 552 300 546 C270 552 240 556 210 548 C204 524 204 500 210 466 Z" aria-hidden="true"/>
 
           <g id="tm-torso">
             <g id="tm-armL">
               <use href="#tm-arm-shape"/>
-              <g class="tm-held" id="tm-heldL"><use href="#tm-held-shape"/></g>
-              <ellipse class="tm-hold" data-hand="L" cx="177" cy="503" rx="30" ry="36" tabindex="0" role="button" aria-label="Their left hand"/>
+              <path class="tm-hot tm-area" data-part="armL" d="M206 236 C188 270 178 330 172 400 C168 430 166 452 164 470 L196 474 C198 440 202 400 208 360 C214 320 224 284 240 256 Z M161 477 C155 492 156 514 166 524 C174 533 188 531 193 518 C198 506 199 490 197 474 Z" aria-hidden="true"/>
             </g>
             <g id="tm-armR">
               <use href="#tm-arm-shape" transform="matrix(-1 0 0 1 600 0)"/>
-              <g class="tm-held" id="tm-heldR"><use href="#tm-held-shape" transform="matrix(-1 0 0 1 600 0)"/></g>
-              <ellipse class="tm-hold" data-hand="R" cx="423" cy="503" rx="30" ry="36" tabindex="0" role="button" aria-label="Their right hand"/>
+              <path class="tm-hot tm-area" data-part="armR" d="M206 236 C188 270 178 330 172 400 C168 430 166 452 164 470 L196 474 C198 440 202 400 208 360 C214 320 224 284 240 256 Z M161 477 C155 492 156 514 166 524 C174 533 188 531 193 518 C198 506 199 490 197 474 Z" transform="matrix(-1 0 0 1 600 0)" aria-hidden="true"/>
             </g>
 
             <!-- neck -->
@@ -278,6 +248,7 @@
               <!-- crew neck collar -->
               <path d="M268 230 C276 246 324 246 332 230 C326 222 274 222 268 230 Z" fill="#4a3e22" class="tm-ink"/>
               <path d="M276 232 C284 241 316 241 324 232" class="tm-fold" stroke="#2c2412"/>
+              <path class="tm-hot tm-area" data-part="torso" d="M214 234 C240 220 270 226 300 228 C330 226 360 220 386 234 C402 260 404 300 398 340 C394 390 392 430 386 480 L214 480 C208 430 206 390 202 340 C196 300 198 260 214 234 Z" aria-hidden="true"/>
 
               <ellipse class="tm-hot" data-part="ribsL" cx="246" cy="326" rx="40" ry="54" tabindex="0" role="button" aria-label="Tickle their ribs, left side"/>
               <ellipse class="tm-hot" data-part="ribsR" cx="354" cy="326" rx="40" ry="54" tabindex="0" role="button" aria-label="Tickle their ribs, right side"/>
@@ -299,6 +270,7 @@
               <!-- fringe -->
               <path class="tm-hair" d="M250 134 C252 100 276 84 302 85 C330 86 350 104 352 132 C342 116 330 110 318 118 C308 106 292 106 282 120 C272 110 260 116 250 134 Z"/>
               <path d="M266 108 Q276 100 290 98 M312 98 Q326 100 338 110" class="tm-strand"/>
+              <ellipse class="tm-hot tm-area" data-part="head" cx="300" cy="140" rx="60" ry="72" aria-hidden="true"/>
              </g>
             </g>
 
@@ -327,11 +299,6 @@
     <button type="button" class="tm-toggle" id="tm-motion" aria-pressed="false">motion: full</button>
   </footer>
 
-  <section class="tm-after" id="tm-after" hidden>
-    <p class="tm-after-line">let it out.</p>
-    <button type="button" class="tm-link" id="tm-again">again</button>
-  </section>
-
   <div class="tm-black" id="tm-black" hidden></div>
 
   <section class="tm-end" id="tm-end" hidden aria-labelledby="tm-end-title">
@@ -340,8 +307,14 @@
     <div class="tm-spread" id="tm-spread">
       <p class="tm-spread-line" id="tm-spread-line">it’s in you now.</p>
       <p class="tm-spread-sub" id="tm-spread-sub">passing it on helps.</p>
-      <button type="button" class="tm-pass" id="tm-share">pass it on</button>
-      <p class="tm-carrier" id="tm-carrier" aria-live="polite"></p>
+      <div class="tm-linkbox">
+        <label class="tm-sr" for="tm-link">your link</label>
+        <input class="tm-linkfield" id="tm-link" type="text" readonly spellcheck="false" value="">
+        <button type="button" class="tm-pass" id="tm-copy">copy link</button>
+      </div>
+      <button type="button" class="tm-link tm-share-native" id="tm-share" hidden>share…</button>
+      <p class="tm-count" id="tm-count" aria-live="polite" hidden></p>
+      <p class="tm-carrier" id="tm-carrier"></p>
     </div>
     <div class="tm-end-actions">
       <button type="button" class="tm-link" id="tm-replay">go again</button>

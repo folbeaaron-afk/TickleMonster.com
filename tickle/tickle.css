@@ -53,10 +53,17 @@
   transition: opacity 0.8s ease;
 }
 .tm:not([data-phase="idle"]) .tm-sub { opacity: 0; }
-.tm[data-phase="play"] .tm-headline { opacity: 0.5; }
-.tm[data-stage="3"] .tm-headline { opacity: 0.35; color: #c9b9a0; }
-.tm[data-stage="4"] .tm-headline,
-.tm[data-stage="5"] .tm-headline { opacity: 0; }
+/* the headline eggs you on; each new line types itself in */
+.tm-headline.is-new { animation: tm-type 0.7s steps(6) both; }
+@keyframes tm-type {
+  0% { opacity: 0; letter-spacing: 0.3em; }
+  40% { opacity: 1; }
+  100% { opacity: 1; letter-spacing: 0.14em; }
+}
+.tm[data-stage="3"] .tm-headline { color: #e8d2b4; }
+.tm[data-stage="4"] .tm-headline { color: #e7b9a6; text-shadow: 1px 0 0 rgba(163, 38, 28, 0.8), -1px 0 0 rgba(80, 140, 150, 0.4); }
+.tm[data-stage="5"] .tm-headline { color: #9c9283; letter-spacing: 0.22em; }
+.tm[data-motion="reduced"] .tm-headline.is-new { animation: none; }
 
 /* ---------- frame ---------- */
 .tm-frame {
@@ -135,41 +142,7 @@
 .tm[data-phase="stopping"] .tm-hot,
 .tm[data-phase="frozen"] .tm-hot { cursor: default; }
 
-/* holding their hand */
-.tm-hold { fill: rgba(0, 0, 0, 0); stroke: none; pointer-events: all; outline: none; cursor: default; touch-action: none; }
-.tm[data-phase="play"][data-stage="3"] .tm-hold,
-.tm[data-phase="play"][data-stage="4"] .tm-hold,
-.tm[data-phase="auto"] .tm-hold,
-.tm[data-phase="stopping"] .tm-hold { cursor: pointer; }
-.tm-hold:focus-visible { stroke: rgba(230, 222, 201, 0.7); stroke-width: 2; stroke-dasharray: 5 6; }
-.tm-held { opacity: 0; transition: opacity 0.6s ease; pointer-events: none; }
-.tm-held.is-on { opacity: 1; }
-.tm[data-phase="crying"] .tm-held, .tm[data-phase="calm"] .tm-held { opacity: 0; transition-duration: 3s; }
-.tm-black-tear { fill: #0d0907; stroke: #2a1f18; stroke-width: 0.4; }
-.tm-black-trail { fill: none; stroke: #120c09; stroke-width: 1.6; stroke-linecap: round; }
-.tm[data-phase="crying"] .tm-hot,
-.tm[data-phase="calm"] .tm-hot { cursor: default; }
-.tm[data-phase="crying"] .tm-scene,
-.tm[data-phase="calm"] .tm-scene { animation: tm-push 24s linear forwards; animation-play-state: paused; }
-.tm[data-phase="crying"] .tm-headline, .tm[data-phase="calm"] .tm-headline { opacity: 0; }
-
-/* after the quiet ending: no title card */
-.tm-after {
-  position: fixed;
-  left: 50%;
-  bottom: calc(max(12px, env(safe-area-inset-bottom)) + 58px);
-  transform: translateX(-50%);
-  z-index: 20;
-  display: grid;
-  justify-items: center;
-  gap: 2px;
-  text-align: center;
-  animation: tm-fade 3s ease 2.5s both;
-}
-.tm-after[hidden] { display: none; }
-.tm-after-line { margin: 0; color: var(--tm-dim); letter-spacing: 0.2em; font-size: 13px; }
-
-/* spread = relief */
+/* pass it on */
 .tm-spread { display: grid; justify-items: center; gap: 6px; margin-top: 26px; }
 .tm-spread-line { margin: 0; color: #e9e1cb; letter-spacing: 0.14em; font-size: clamp(15px, 3vw, 19px); }
 .tm-spread-sub { margin: 0; color: var(--tm-dim); letter-spacing: 0.14em; font-size: 13px; }
@@ -189,6 +162,24 @@
 }
 .tm-pass:hover { background: #e4dab6; }
 .tm-pass:focus-visible { outline: 2px dashed var(--tm-ink); outline-offset: 5px; }
+.tm-linkbox { display: flex; gap: 8px; align-items: stretch; margin-top: 12px; width: min(440px, 90vw); }
+.tm-linkfield {
+  flex: 1;
+  min-width: 0;
+  font: 13px/1 var(--tm-type);
+  letter-spacing: 0.04em;
+  color: var(--tm-ink);
+  background: #14110e;
+  border: 1px solid var(--tm-faint);
+  padding: 10px 12px;
+}
+.tm-linkfield:focus-visible { outline: 2px dashed var(--tm-ink); outline-offset: 2px; }
+.tm-linkbox .tm-pass { margin-top: 0; white-space: nowrap; transform: rotate(-1deg); }
+.tm-share-native { margin-top: 4px; }
+.tm-share-native[hidden] { display: none; }
+.tm-count { margin: 14px 0 0; color: #cfc3a6; letter-spacing: 0.12em; font-size: 14px; }
+.tm-count[hidden] { display: none; }
+.tm-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .tm-carrier { margin: 4px 0 0; color: var(--tm-faint); letter-spacing: 0.22em; font-size: 11px; min-height: 1.4em; word-break: break-all; max-width: 90vw; }
 
 /* ---------- overlays ---------- */
