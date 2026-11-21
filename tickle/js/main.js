@@ -3,17 +3,17 @@
  * "They're Ticklish" — interactive piece for TICKLE MONSTER.
  * Wires input -> state machine -> hands / person / laugh / audio -> SVG.
  */
-import { createMachine } from './state.js?v=202611210923';
-import { Scene, PARTS } from './scene.js?v=202611210923';
-import { HandDirector } from './hands.js?v=202611210923';
-import { Person } from './person.js?v=202611210923';
-import { LaughDriver } from './laugh.js?v=202611210923';
-import { AudioEngine } from './audio.js?v=202611210923';
-import { stepNoise } from './util.js?v=202611210923';
+import { createMachine } from './state.js?v=202611210941';
+import { Scene, PARTS } from './scene.js?v=202611210941';
+import { HandDirector } from './hands.js?v=202611210941';
+import { Person } from './person.js?v=202611210941';
+import { LaughDriver } from './laugh.js?v=202611210941';
+import { AudioEngine } from './audio.js?v=202611210941';
+import { stepNoise } from './util.js?v=202611210941';
 import {
   incomingGeneration, loadCarrier, saveCarrier, infect, unwell, shareUrl, counter,
-  hasStopped, markStopped, yourLine, totalLine, loadNumber, saveNumber,
-} from './spread.js?v=202611210923';
+  markStopped, yourLine, totalLine, loadNumber, saveNumber, loadTotal, saveTotal,
+} from './spread.js?v=202611210941';
 
 const SEED = 0x71c4;
 
@@ -200,17 +200,47 @@ function renderSpread() {
  * it than that, "1,540 people have it now."
  * If the counter service can't be reached, these lines just don't appear.
  */
+let knownTotal = loadTotal();
+/** @param {number|null} n */
+function noteTotal(n) {
+  if (n === null) return;
+  knownTotal = Math.max(knownTotal || 0, n);
+  saveTotal(knownTotal);
+}
+// the counter service can be slow: start asking as soon as the page opens
+counter('get').then(noteTotal);
+
 async function showNumbers() {
-  const mine = (stopCount ? await stopCount : null) || loadNumber();
-  if (mine) {
-    yourEl.textContent = yourLine(mine);
+  let mine = loadNumber();
+  const render = () => {
+    if (mine) {
+      yourEl.textContent = yourLine(mine);
+      yourEl.hidden = false;
+    }
+    if (knownTotal !== null && (!mine || knownTotal > mine)) {
+      countEl.textContent = totalLine(knownTotal);
+      countEl.hidden = false;
+    } else {
+      countEl.hidden = true; // never show a total smaller than your own number
+    }
+  };
+  if (stopCount && !mine) {
+    yourEl.textContent = 'counting…';
     yourEl.hidden = false;
   }
-  const total = await counter('get');
-  if (total !== null && (!mine || total > mine)) {
-    countEl.textContent = totalLine(Math.max(total, mine || 0));
-    countEl.hidden = false;
+  render();
+  if (stopCount) {
+    const n = await stopCount;
+    if (n) {
+      mine = n;
+      noteTotal(n);
+    } else if (!mine) {
+      yourEl.hidden = true; // couldn't get a number this time; try again next STOP
+    }
+    render();
   }
+  noteTotal(await counter('get'));
+  render();
 }
 
 function passedOn() {
@@ -224,7 +254,9 @@ function passedOn() {
 /** Pressing STOP adds you to the worldwide count (once per browser). */
 let stopCount = /** @type {Promise<number|null>|null} */ (null);
 function countStop() {
-  if (hasStopped()) return;
+  // one number per browser; browsers that pressed STOP before numbers
+  // existed get theirs now
+  if (loadNumber()) return;
   markStopped();
   stopCount = counter('hit').then((n) => {
     if (n) saveNumber(n);

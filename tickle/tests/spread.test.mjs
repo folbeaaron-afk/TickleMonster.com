@@ -32,20 +32,26 @@ test('your number and the live total', () => {
 
 test('counter: reads, adds, and fails quietly', async () => {
   const calls = [];
-  const ok = (value) => async (url) => {
+  const ok = (value) => async (url, opts) => {
     calls.push(url);
+    assert.equal(opts && opts.cache, undefined, 'no cache option (Safari would add blocked headers)');
     return { ok: true, status: 200, json: async () => ({ value }) };
   };
   assert.equal(await counter('get', ok(41)), 41);
   assert.equal(await counter('hit', ok(42)), 42);
-  assert.deepEqual(calls, [
+  assert.deepEqual(calls.map((u) => u.replace(/\?t=\d+$/, '')), [
     `${COUNTER.base}/get/${COUNTER.namespace}/${COUNTER.key}`,
     `${COUNTER.base}/hit/${COUNTER.namespace}/${COUNTER.key}`,
   ]);
   const notFound = async () => ({ ok: false, status: 404, json: async () => ({}) });
   assert.equal(await counter('get', notFound), 0, 'no key yet means nobody yet');
-  const broken = async () => { throw new Error('offline'); };
+  let tries = 0;
+  const broken = async () => { tries++; throw new Error('offline'); };
   assert.equal(await counter('get', broken), null);
+  assert.equal(tries, 2, 'reads retry once');
+  tries = 0;
+  assert.equal(await counter('hit', broken), null);
+  assert.equal(tries, 1, 'never risk adding twice');
   const junk = async () => ({ ok: true, status: 200, json: async () => ({ nope: 1 }) });
   assert.equal(await counter('hit', junk), null);
 });

@@ -17,6 +17,7 @@
 const KEY = 'tm-ticklish-carrier';
 const STOPPED_KEY = 'tm-ticklish-stopped';
 const NUMBER_KEY = 'tm-ticklish-number';
+const TOTAL_KEY = 'tm-ticklish-total';
 
 /** The shared counter. Swap for your own endpoint any time. */
 export const COUNTER = Object.freeze({
@@ -95,6 +96,25 @@ export function loadNumber() {
   }
 }
 
+/** Last total this browser saw (shown instantly while a fresh one loads). @returns {number|null} */
+export function loadTotal() {
+  try {
+    const n = parseInt(localStorage.getItem(TOTAL_KEY) || '', 10);
+    return Number.isFinite(n) && n > 0 ? n : null;
+  } catch {
+    return null;
+  }
+}
+
+/** @param {number} n */
+export function saveTotal(n) {
+  try {
+    localStorage.setItem(TOTAL_KEY, String(n));
+  } catch {
+    /* fine */
+  }
+}
+
 /** @param {number} n */
 export function saveNumber(n) {
   try {
@@ -127,13 +147,24 @@ export function markStopped() {
  * @returns {Promise<number|null>} null if unavailable
  */
 export async function counter(op, fetchFn = fetch) {
+  const first = await counterOnce(op, fetchFn);
+  if (first !== null || op === 'hit') return first; // never add twice
+  return counterOnce(op, fetchFn); // one retry for reads
+}
+
+/**
+ * A plain GET with no custom headers. Note: no `cache:` option — Safari turns
+ * that into extra request headers the counter service refuses, which blocks
+ * the request on iPhones. A throwaway ?t= keeps answers fresh instead.
+ * @param {'get'|'hit'} op @param {typeof fetch} fetchFn
+ */
+async function counterOnce(op, fetchFn) {
   const ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
-  const timer = ctrl ? setTimeout(() => ctrl.abort(), 6000) : null;
+  // the free service can take 10+ seconds to answer; be patient
+  const timer = ctrl ? setTimeout(() => ctrl.abort(), 20000) : null;
   try {
-    const res = await fetchFn(`${COUNTER.base}/${op}/${COUNTER.namespace}/${COUNTER.key}`, {
-      signal: ctrl ? ctrl.signal : undefined,
-      cache: 'no-store',
-    });
+    const url = `${COUNTER.base}/${op}/${COUNTER.namespace}/${COUNTER.key}?t=${Date.now()}`;
+    const res = await fetchFn(url, { signal: ctrl ? ctrl.signal : undefined });
     if (op === 'get' && res.status === 404) return 0; // nobody yet
     if (!res.ok) return null;
     const body = await res.json();
