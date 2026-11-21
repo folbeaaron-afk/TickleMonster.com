@@ -23,6 +23,8 @@ Tests (Node 20+):
 node --test 'tickle/tests/*.test.mjs'
 ```
 
+After changing any file, run `python3 tickle/stamp.py` so browsers fetch fresh copies (GitHub Pages caches for about 10 minutes).
+
 Optional type-check (the JS is annotated with `// @ts-check` + JSDoc):
 
 ```sh

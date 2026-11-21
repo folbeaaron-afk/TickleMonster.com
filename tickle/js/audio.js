@@ -11,7 +11,7 @@
  * which silences everything, including already-scheduled syllables, in
  * the same instant. That is the freeze.
  */
-import { mulberry32 } from './util.js';
+import { mulberry32 } from './util.js?v=202611210856';
 
 /**
  * Drop real recordings in here to replace synthesis, e.g.

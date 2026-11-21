@@ -3,16 +3,16 @@
  * "They're Ticklish" — interactive piece for TICKLE MONSTER.
  * Wires input -> state machine -> hands / person / laugh / audio -> SVG.
  */
-import { createMachine } from './state.js';
-import { Scene, PARTS } from './scene.js';
-import { HandDirector } from './hands.js';
-import { Person } from './person.js';
-import { LaughDriver } from './laugh.js';
-import { AudioEngine } from './audio.js';
-import { stepNoise } from './util.js';
+import { createMachine } from './state.js?v=202611210856';
+import { Scene, PARTS } from './scene.js?v=202611210856';
+import { HandDirector } from './hands.js?v=202611210856';
+import { Person } from './person.js?v=202611210856';
+import { LaughDriver } from './laugh.js?v=202611210856';
+import { AudioEngine } from './audio.js?v=202611210856';
+import { stepNoise } from './util.js?v=202611210856';
 import {
   incomingGeneration, loadCarrier, saveCarrier, infect, unwell, shareUrl, carrierLabel, countLine, counter,
-} from './spread.js';
+} from './spread.js?v=202611210856';
 
 const SEED = 0x71c4;
 const MOTION_KEY = 'tm-ticklish-motion';

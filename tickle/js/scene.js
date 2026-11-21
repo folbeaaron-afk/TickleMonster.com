@@ -4,7 +4,7 @@
  * hotspot-local coordinates to scene coordinates so the hands land on the
  * exact spot that was touched, at any screen size, even while the body moves.
  */
-import { r1, clamp } from './util.js';
+import { r1, clamp } from './util.js?v=202611210856';
 
 const NS = 'http://www.w3.org/2000/svg';
 
