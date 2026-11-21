@@ -3,17 +3,17 @@
  * "They're Ticklish" — interactive piece for TICKLE MONSTER.
  * Wires input -> state machine -> hands / person / laugh / audio -> SVG.
  */
-import { createMachine } from './state.js?v=202611211013';
-import { Scene, PARTS } from './scene.js?v=202611211013';
-import { HandDirector } from './hands.js?v=202611211013';
-import { Person } from './person.js?v=202611211013';
-import { LaughDriver } from './laugh.js?v=202611211013';
-import { AudioEngine } from './audio.js?v=202611211013';
-import { stepNoise } from './util.js?v=202611211013';
+import { createMachine } from './state.js?v=202611211020';
+import { Scene, PARTS } from './scene.js?v=202611211020';
+import { HandDirector } from './hands.js?v=202611211020';
+import { Person } from './person.js?v=202611211020';
+import { LaughDriver } from './laugh.js?v=202611211020';
+import { AudioEngine } from './audio.js?v=202611211020';
+import { stepNoise } from './util.js?v=202611211020';
 import {
   incomingGeneration, loadCarrier, saveCarrier, infect, unwell, shareUrl, counter,
   markStopped, yourLine, totalLine, loadNumber, saveNumber, loadTotal, saveTotal,
-} from './spread.js?v=202611211013';
+} from './spread.js?v=202611211020';
 
 const SEED = 0x71c4;
 
@@ -62,6 +62,10 @@ const audio = new AudioEngine();
 
 laugh.onSyllable = (s) => audio.syllable(s, s.t - clock());
 laugh.onBout = (stage, start) => {
+  if (left) {
+    behindTheDoor(start);
+    return;
+  }
   showCaption(stage, start);
   if (stage >= 2 && !reduced) audio.creak(stage);
 };
@@ -163,21 +167,63 @@ for (const type of ['pointerdown', 'pointerup', 'touchend', 'click', 'keydown'])
   }, { capture: true, passive: true });
 }
 
-/* ---------- leave ---------- */
+/* ---------- leave ----------
+ * You left. They didn't. Black, then the light under a closed door, and
+ * behind it, muffled, the laughing carries on. Now and then someone walks
+ * past the door. Once, they stop at it.
+ */
 const gone = $('tm-gone');
-const goneLogo = $('tm-gone-logo');
+const door = $('tm-door');
+const doorShadow = $('tm-door-shadow');
+const backBtn = $('tm-back');
 let left = false;
+let leftAt = 0;
+let bouts = 0;
+let shadowBusy = false;
+
 $('tm-leave').addEventListener('click', () => {
   left = true;
+  leftAt = clock();
   audio.unlock();
-  document.title = 'TICKLE MONSTER';
+  audio.cut(); // silence first
+  document.title = 'you left.';
   end.hidden = true;
   gone.hidden = false;
-  goneLogo.classList.add('is-shaking');
-  audio.leaveSound(5);
-  // the sound cuts out; everything goes still
-  setTimeout(() => goneLogo.classList.remove('is-shaking'), 5050);
+  caption.classList.remove('is-on');
+  setTimeout(() => backBtn.classList.add('is-ready'), 20000);
 });
+backBtn.addEventListener('click', () => location.assign(location.pathname));
+
+/** A bout of laughing behind the door: sometimes someone moves past it. @param {number} start */
+function behindTheDoor(start) {
+  bouts++;
+  if (shadowBusy || bouts < 2) return;
+  const r = (bouts * 7919) % 10;
+  if (r > 3) return;
+  shadowBusy = true;
+  const kind = bouts === 5 ? 'is-stop' : r % 2 ? 'is-back' : '';
+  setTimeout(() => {
+    doorShadow.className = 'tm-door-shadow';
+    void doorShadow.offsetWidth;
+    doorShadow.className = `tm-door-shadow is-passing ${kind}`;
+    audio.creak(2);
+    setTimeout(() => (shadowBusy = false), kind === 'is-stop' ? 5200 : 2800);
+  }, Math.max(0, (start - clock()) * 1000));
+}
+
+/** @param {number} now */
+function afterLeaving(now) {
+  const t = now - leftAt;
+  if (t > 6 && !audio.wallRoom) {
+    audio.muffle();
+    laugh.reset(SEED + 9);
+  }
+  if (t > 6.5) {
+    laugh.update(now, true, 4);
+    const env = laugh.sample(now);
+    door.style.setProperty('--tm-door-dim', (0.28 - env.open * 0.24).toFixed(3));
+  }
+}
 
 replayBtn.addEventListener('click', () => {
   audio.unlock();
@@ -318,7 +364,7 @@ document.addEventListener('visibilitychange', () => {
     hiddenCount = Math.min(hiddenCount + 1, 6);
     document.title = 'ha'.repeat(hiddenCount);
   } else {
-    document.title = left ? 'TICKLE MONSTER' : TITLE;
+    document.title = left ? 'you left.' : TITLE;
   }
 });
 if (unwell(carrier)) sub.textContent = '(you never passed it on.)';
@@ -468,6 +514,8 @@ function frame() {
         scene.setHandFx(false);
       }
     }
+  } else if (left) {
+    afterLeaving(now);
   } else if (s.phase === 'black' && !gigglePlayed && now - s.phaseAt > 1.1) {
     gigglePlayed = true;
     audio.distantGiggle();

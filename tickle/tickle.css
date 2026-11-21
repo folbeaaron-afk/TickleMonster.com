@@ -305,28 +305,106 @@
   position: fixed;
   inset: 0;
   z-index: 70;
-  display: grid;
-  place-items: center;
   background: #000;
-  padding: 24px 16px;
+  overflow: hidden;
 }
 .tm-gone[hidden] { display: none; }
-.tm-gone-logo { text-align: center; }
-/* the title trembles harder as the sound climbs, then stops dead */
-.tm-gone-logo.is-shaking { animation: tm-gone-shake 5s linear forwards; }
-@keyframes tm-gone-shake {
-  0% { transform: translate(0, 0); }
-  30% { transform: translate(0.3px, -0.3px); }
-  50% { transform: translate(-0.8px, 0.6px); }
-  62% { transform: translate(1.2px, -0.9px); }
-  72% { transform: translate(-1.8px, 1.2px); }
-  80% { transform: translate(2.4px, -1.6px); }
-  86% { transform: translate(-3px, 2px); }
-  91% { transform: translate(3.4px, -2.6px); }
-  95% { transform: translate(-4px, 2.8px); }
-  98% { transform: translate(4.4px, -3px); }
-  100% { transform: translate(0, 0); }
+.tm-gone .tm-gone-title {
+  position: absolute;
+  top: 11%;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: clamp(18px, 4.6vw, 26px);
+  letter-spacing: 0.22em;
+  line-height: 1.2;
+  color: #6f685c;
+  text-shadow: none;
+  margin: 0;
+  opacity: 0;
+  animation: tm-fade-dim 4s ease 14s forwards;
 }
+@keyframes tm-fade-dim { from { opacity: 0; } to { opacity: 0.7; } }
+.tm-gone-lines {
+  position: absolute;
+  top: 42%;
+  left: 0;
+  right: 0;
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  pointer-events: none;
+}
+.tm-gone-line {
+  margin: 0;
+  font-size: clamp(15px, 3.8vw, 19px);
+  letter-spacing: 0.16em;
+  color: #d9cfb8;
+  opacity: 0;
+}
+.tm-gone-1 { animation: tm-line 8.5s ease 1.4s forwards; }
+.tm-gone-2 { animation: tm-line 6.7s ease 3.2s forwards; }
+@keyframes tm-line {
+  0% { opacity: 0; }
+  8% { opacity: 1; }
+  70% { opacity: 1; }
+  100% { opacity: 0; }
+}
+/* light under a closed door */
+.tm-door {
+  position: absolute;
+  left: 50%;
+  bottom: 24%;
+  width: min(62vw, 340px);
+  height: 3px;
+  transform: translateX(-50%);
+  background: linear-gradient(90deg, transparent 0%, #f0c97f 14%, #ffdc9a 50%, #f0c97f 86%, transparent 100%);
+  box-shadow: 0 0 22px 4px rgba(240, 190, 110, 0.28), 0 -10px 40px rgba(240, 190, 110, 0.08);
+  opacity: 0;
+  animation: tm-fade 3.5s ease 6.5s forwards;
+  overflow: hidden;
+}
+.tm-door::after {
+  /* it brightens and dims with the laughing */
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: #000;
+  opacity: var(--tm-door-dim, 0.15);
+}
+.tm-door-shadow {
+  position: absolute;
+  top: -2px;
+  bottom: -2px;
+  left: -30%;
+  width: 26%;
+  background: linear-gradient(90deg, transparent, rgba(0, 0, 0, 0.96) 30%, rgba(0, 0, 0, 0.96) 70%, transparent);
+  opacity: 0;
+}
+.tm-door-shadow.is-passing { animation: tm-shadow 2.6s cubic-bezier(0.4, 0, 0.6, 1) forwards; }
+.tm-door-shadow.is-passing.is-back { animation-name: tm-shadow-back; }
+.tm-door-shadow.is-passing.is-stop { animation-name: tm-shadow-stop; animation-duration: 5s; }
+@keyframes tm-shadow { 0% { left: -30%; opacity: 1; } 100% { left: 110%; opacity: 1; } }
+@keyframes tm-shadow-back { 0% { left: 110%; opacity: 1; } 100% { left: -30%; opacity: 1; } }
+/* someone walks to the door, stands there, and walks away */
+@keyframes tm-shadow-stop {
+  0% { left: -30%; opacity: 1; }
+  30% { left: 37%; opacity: 1; }
+  78% { left: 37%; opacity: 1; }
+  100% { left: -30%; opacity: 1; }
+}
+.tm-gone .tm-gone-back {
+  position: absolute;
+  left: 50%;
+  bottom: calc(max(12px, env(safe-area-inset-bottom)) + 28px);
+  transform: translateX(-50%);
+  color: #6f685c;
+  border-bottom-color: #2a2621;
+  opacity: 0;
+  pointer-events: none;
+  animation: tm-fade 3s ease 20s forwards;
+}
+.tm-gone .tm-gone-back.is-ready { pointer-events: auto; }
 
 .tm-end {
   position: fixed;

@@ -14,8 +14,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IM+Fell+English+SC&family=Special+Elite&display=swap">
-<link rel="stylesheet" href="tickle.css?v=202611211013">
-<link rel="modulepreload" href="js/main.js?v=202611211013">
+<link rel="stylesheet" href="tickle.css?v=202611211020">
+<link rel="modulepreload" href="js/main.js?v=202611211020">
 </head>
 <body class="tm-page">
 <main id="tm" class="tm" data-phase="idle" data-stage="0" data-motion="full">
@@ -319,12 +319,18 @@
     </div>
   </section>
 
-  <section class="tm-gone" id="tm-gone" hidden aria-label="Tickle Monster">
-    <p class="tm-logo tm-gone-logo" id="tm-gone-logo"><span>TICKLE</span> <span>MONSTER</span></p>
+  <section class="tm-gone" id="tm-gone" hidden aria-label="You left">
+    <p class="tm-gone-title tm-logo" aria-hidden="true">TICKLE MONSTER</p>
+    <div class="tm-gone-lines">
+      <p class="tm-gone-line tm-gone-1">you left.</p>
+      <p class="tm-gone-line tm-gone-2">they didn’t.</p>
+    </div>
+    <div class="tm-door" id="tm-door" aria-hidden="true"><span class="tm-door-shadow" id="tm-door-shadow"></span></div>
+    <button type="button" class="tm-link tm-gone-back" id="tm-back">go back in</button>
   </section>
 
   <noscript><p class="tm-noscript">This one needs JavaScript. They’ll wait.</p></noscript>
 </main>
-<script type="module" src="js/main.js?v=202611211013"></script>
+<script type="module" src="js/main.js?v=202611211020"></script>
 </body>
 </html>

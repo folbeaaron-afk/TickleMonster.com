@@ -4,10 +4,10 @@
  * handful of joint angles, so it can reach any point on the body and
  * its fingers can behave "naturally" early on and wrongly later.
  */
-import { svgEl, PARTS, PART_NAMES } from './scene.js?v=202611211013';
+import { svgEl, PARTS, PART_NAMES } from './scene.js?v=202611211020';
 import {
   clamp, lerp, damp, easeInOut, easeOutBack, mulberry32, noise1, stepNoise, smoothPath, taperedPath,
-} from './util.js?v=202611211013';
+} from './util.js?v=202611211020';
 
 /** @typedef {[number, number]} Pt */
 

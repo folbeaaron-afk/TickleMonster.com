@@ -11,7 +11,7 @@
  * which silences everything, including already-scheduled syllables, in
  * the same instant. That is the freeze.
  */
-import { mulberry32 } from './util.js?v=202611211013';
+import { mulberry32 } from './util.js?v=202611211020';
 
 /**
  * Drop real recordings in here to replace synthesis, e.g.
@@ -543,93 +543,49 @@ export class AudioEngine {
   }
 
   /**
-   * Leaving: the wind from the start, the drone under it, and a thin
-   * whine that climbs into a screech. Five seconds, then nothing.
-   * @param {number} [dur] seconds
+   * Leaving. The laughing carries on in another room: everything after this
+   * goes through a "wall" (low-pass, more reverb, quieter), with only the
+   * room tone on this side of it.
    */
-  leaveSound(dur = 5) {
+  muffle() {
     const c = this.ctx;
     if (!c) return;
     if (this.run) this.cut();
-    const now = c.currentTime + 0.05;
-    const end = now + dur;
+    const now = c.currentTime;
     const out = c.createGain();
-    out.gain.value = 1;
-    out.connect(/** @type {GainNode} */ (this.master));
+    out.gain.setValueAtTime(0.0001, now);
+    out.gain.linearRampToValueAtTime(0.75, now + 6); // it was always there; you just notice it
+    const wall = c.createBiquadFilter();
+    wall.type = 'lowpass';
+    wall.frequency.value = 620;
+    wall.Q.value = 0.8;
+    out.connect(wall).connect(/** @type {GainNode} */ (this.master));
+    const dry = c.createGain();
+    dry.gain.value = 0.38;
+    dry.connect(out);
+    const verb = c.createConvolver();
+    verb.buffer = /** @type {AudioBuffer} */ (this.ir);
+    const wet = c.createGain();
+    wet.gain.value = 0.6;
+    verb.connect(wet).connect(out);
     /** @type {AudioScheduledSourceNode[]} */
-    const srcs = [];
-    /** @param {GainNode} g @param {[number, number][]} pts */
-    const env = (g, pts) => {
-      g.gain.setValueAtTime(0.0001, now);
-      for (const [t, v] of pts) g.gain.linearRampToValueAtTime(v, now + t);
-    };
-
-    // wind: brown noise through a slowly breathing low-pass
-    const wind = c.createBufferSource();
-    wind.buffer = /** @type {AudioBuffer} */ (this.brown);
-    wind.loop = true;
-    const lp = c.createBiquadFilter();
-    lp.type = 'lowpass';
-    lp.frequency.value = 420;
-    lp.Q.value = 2.5;
-    const gust = c.createOscillator();
-    gust.frequency.value = 0.35;
-    const gustAmt = c.createGain();
-    gustAmt.gain.value = 260;
-    gust.connect(gustAmt).connect(lp.frequency);
-    const windG = c.createGain();
-    env(windG, [[0.8, 0.55], [dur * 0.8, 0.75], [dur, 0.8]]);
-    wind.connect(lp).connect(windG).connect(out);
-    wind.start(now, this.rng());
-    gust.start(now);
-    srcs.push(wind, gust);
-
-    // the low drone underneath
-    const droneG = c.createGain();
-    env(droneG, [[1.5, 0.06], [dur, 0.16]]);
-    for (const f of [49, 49.3, 98]) {
-      const o = c.createOscillator();
-      o.frequency.setValueAtTime(f, now);
-      o.frequency.linearRampToValueAtTime(f * 0.94, end);
-      o.connect(droneG);
-      o.start(now);
-      srcs.push(o);
-    }
-    droneG.connect(out);
-
-    // the whine, climbing, two tones rubbing against each other: a screech
-    const whineG = c.createGain();
-    env(whineG, [[dur * 0.3, 0.0001], [dur * 0.6, 0.02], [dur * 0.9, 0.11], [dur, 0.16]]);
-    for (const detune of [0, 41]) {
-      const o = c.createOscillator();
-      o.type = detune ? 'sawtooth' : 'sine';
-      o.frequency.setValueAtTime(2400 + detune, now);
-      o.frequency.exponentialRampToValueAtTime(6800 + detune * 3, end);
-      const g = c.createGain();
-      g.gain.value = detune ? 0.25 : 1;
-      o.connect(g).connect(whineG);
-      o.start(now);
-      srcs.push(o);
-    }
-    // a hiss that rises with it
-    const hiss = c.createBufferSource();
-    hiss.buffer = /** @type {AudioBuffer} */ (this.noise);
-    hiss.loop = true;
-    const hp = c.createBiquadFilter();
-    hp.type = 'highpass';
-    hp.frequency.value = 5000;
-    const hissG = c.createGain();
-    env(hissG, [[dur * 0.5, 0.0001], [dur, 0.09]]);
-    hiss.connect(hp).connect(hissG).connect(whineG);
-    hiss.start(now, this.rng());
-    srcs.push(hiss);
-    whineG.connect(out);
-
-    // and then: nothing
-    out.gain.setValueAtTime(1, end);
-    out.gain.linearRampToValueAtTime(0, end + 0.006);
-    for (const s of srcs) s.stop(end + 0.05);
-    this.leaveOut = out;
+    const sources = [];
+    // this side of the wall: just the room
+    const room = c.createBufferSource();
+    room.buffer = /** @type {AudioBuffer} */ (this.brown);
+    room.loop = true;
+    const roomLp = c.createBiquadFilter();
+    roomLp.type = 'lowpass';
+    roomLp.frequency.value = 300;
+    const roomG = c.createGain();
+    roomG.gain.value = 0.045;
+    room.connect(roomLp).connect(roomG).connect(/** @type {GainNode} */ (this.master));
+    room.start(now);
+    sources.push(room);
+    const quiet = c.createGain();
+    quiet.gain.value = 0;
+    this.run = { out, dry, verb, sources, amb: { roomG, droneG: quiet, disG: quiet, whineG: quiet, drones: [] } };
+    this.wallRoom = roomG;
   }
 
   /** In the dark, very far away, a giggle. */
