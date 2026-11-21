@@ -16,6 +16,7 @@
 
 const KEY = 'tm-ticklish-carrier';
 const STOPPED_KEY = 'tm-ticklish-stopped';
+const NUMBER_KEY = 'tm-ticklish-number';
 
 /** The shared counter. Swap for your own endpoint any time. */
 export const COUNTER = Object.freeze({
@@ -69,17 +70,38 @@ export function infect(existing, incoming) {
 /** Is it still in them? @param {Carrier|null} c */
 export const unwell = (c) => !!c && !c.shared;
 
-/** The link to pass on. @param {{origin: string, pathname: string}} loc @param {number} gen */
-export const shareUrl = (loc, gen) => `${loc.origin}${loc.pathname}?g=${gen}`;
+/** The link to pass on: just the site. @param {{origin: string}} loc */
+export const shareUrl = (loc) => `${loc.origin}/`;
+
+/** 1st, 2nd, 3rd, 4th, 11th, 12th, 13th, 21st, 1,208th... @param {number} n */
+export function ordinal(n) {
+  const s = n % 100 >= 11 && n % 100 <= 13 ? 'th' : ['th', 'st', 'nd', 'rd'][n % 10] || 'th';
+  return `${n.toLocaleString('en-US')}${s}`;
+}
+
+/** Your place in it. @param {number} n */
+export const yourLine = (n) => `you’re the ${ordinal(n)} person to pass it on.`;
+
+/** How many have it now. @param {number} n */
+export const totalLine = (n) => (n === 1 ? '1 person has it now.' : `${n.toLocaleString('en-US')} people have it now.`);
+
+/** This browser's number, if it has one. @returns {number|null} */
+export function loadNumber() {
+  try {
+    const n = parseInt(localStorage.getItem(NUMBER_KEY) || '', 10);
+    return Number.isFinite(n) && n > 0 ? n : null;
+  } catch {
+    return null;
+  }
+}
 
 /** @param {number} n */
-export const carrierLabel = (n) => `carrier no. ${String(n).padStart(4, '0')}`;
-
-/** How the worldwide count reads. @param {number} n */
-export function countLine(n) {
-  if (n <= 0) return 'nobody has passed it on yet.';
-  if (n === 1) return '1 person has passed it on.';
-  return `${n.toLocaleString('en-US')} people have passed it on.`;
+export function saveNumber(n) {
+  try {
+    localStorage.setItem(NUMBER_KEY, String(n));
+  } catch {
+    /* fine */
+  }
 }
 
 /** Has this browser already pressed STOP (and been counted)? */

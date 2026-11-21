@@ -3,17 +3,17 @@
  * "They're Ticklish" — interactive piece for TICKLE MONSTER.
  * Wires input -> state machine -> hands / person / laugh / audio -> SVG.
  */
-import { createMachine } from './state.js?v=202611210916';
-import { Scene, PARTS } from './scene.js?v=202611210916';
-import { HandDirector } from './hands.js?v=202611210916';
-import { Person } from './person.js?v=202611210916';
-import { LaughDriver } from './laugh.js?v=202611210916';
-import { AudioEngine } from './audio.js?v=202611210916';
-import { stepNoise } from './util.js?v=202611210916';
+import { createMachine } from './state.js?v=202611210923';
+import { Scene, PARTS } from './scene.js?v=202611210923';
+import { HandDirector } from './hands.js?v=202611210923';
+import { Person } from './person.js?v=202611210923';
+import { LaughDriver } from './laugh.js?v=202611210923';
+import { AudioEngine } from './audio.js?v=202611210923';
+import { stepNoise } from './util.js?v=202611210923';
 import {
-  incomingGeneration, loadCarrier, saveCarrier, infect, unwell, shareUrl, carrierLabel, countLine, counter,
-  hasStopped, markStopped,
-} from './spread.js?v=202611210916';
+  incomingGeneration, loadCarrier, saveCarrier, infect, unwell, shareUrl, counter,
+  hasStopped, markStopped, yourLine, totalLine, loadNumber, saveNumber,
+} from './spread.js?v=202611210923';
 
 const SEED = 0x71c4;
 
@@ -31,11 +31,11 @@ const replayBtn = $('tm-replay');
 const shareBtn = /** @type {HTMLButtonElement} */ ($('tm-share'));
 const copyBtn = $('tm-copy');
 const linkField = /** @type {HTMLInputElement} */ ($('tm-link'));
+const yourEl = $('tm-yours');
 const countEl = $('tm-count');
 const sub = $('tm-sub');
 const spreadLine = $('tm-spread-line');
 const spreadSub = $('tm-spread-sub');
-const carrierEl = $('tm-carrier');
 
 /** What the page says to you, stage by stage. It eggs you on. Then it doesn't need you. */
 const HEADLINES = [
@@ -180,7 +180,7 @@ let nextGiggle = 0;
 
 function myLink() {
   if (!carrier) carrier = infect(null, incoming);
-  return shareUrl(location, carrier.gen);
+  return shareUrl(location);
 }
 
 function renderSpread() {
@@ -193,19 +193,24 @@ function renderSpread() {
     spreadLine.textContent = 'it’s in you now.';
     spreadSub.textContent = 'passing it on helps.';
   }
-  carrierEl.textContent = carrierLabel(carrier.gen);
 }
 
-/** @type {number|null} last count we know of */
-let lastCount = null;
-
-/** @param {number|null} n */
-function showCount(n) {
-  if (n === null) return; // counter unavailable: say nothing
-  // never show the number going down (the server may lag a moment)
-  lastCount = lastCount === null ? n : Math.max(lastCount, n);
-  countEl.textContent = countLine(lastCount);
-  countEl.hidden = false;
+/**
+ * "you're the 1,208th person to pass it on." and, once more people have
+ * it than that, "1,540 people have it now."
+ * If the counter service can't be reached, these lines just don't appear.
+ */
+async function showNumbers() {
+  const mine = (stopCount ? await stopCount : null) || loadNumber();
+  if (mine) {
+    yourEl.textContent = yourLine(mine);
+    yourEl.hidden = false;
+  }
+  const total = await counter('get');
+  if (total !== null && (!mine || total > mine)) {
+    countEl.textContent = totalLine(Math.max(total, mine || 0));
+    countEl.hidden = false;
+  }
 }
 
 function passedOn() {
@@ -221,7 +226,10 @@ let stopCount = /** @type {Promise<number|null>|null} */ (null);
 function countStop() {
   if (hasStopped()) return;
   markStopped();
-  stopCount = counter('hit');
+  stopCount = counter('hit').then((n) => {
+    if (n) saveNumber(n);
+    return n;
+  });
 }
 
 copyBtn.addEventListener('click', async () => {
@@ -302,8 +310,7 @@ function onTransition(s, prev, now) {
         renderSpread();
         end.hidden = false;
         nextGiggle = now + 25;
-        // if this visit pressed STOP, show the number that includes them
-        (stopCount || counter('get')).then(showCount);
+        showNumbers();
         copyBtn.focus({ preventScroll: true });
         break;
       case 'stopping':
@@ -344,6 +351,7 @@ function resetAll(now) {
   caption.classList.remove('is-on');
   caption.textContent = '';
   countEl.hidden = true;
+  yourEl.hidden = true;
   stopCount = null;
   setHeadline(HEADLINES[0]);
   root.dataset.stage = '0';

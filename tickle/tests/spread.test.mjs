@@ -2,7 +2,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  incomingGeneration, infect, unwell, shareUrl, carrierLabel, countLine, counter, COUNTER,
+  incomingGeneration, infect, unwell, shareUrl, ordinal, yourLine, totalLine, counter, COUNTER,
 } from '../js/spread.js';
 
 test('generation comes from the link, safely', () => {
@@ -19,14 +19,15 @@ test('becoming a carrier and passing it on', () => {
   assert.equal(unwell(c), true);
   assert.equal(infect(c, 9), c, 'already a carrier keeps their place in the chain');
   assert.equal(unwell({ ...c, shared: true }), false);
-  assert.equal(shareUrl({ origin: 'https://ticklemonster.com', pathname: '/tickle/' }, 4), 'https://ticklemonster.com/tickle/?g=4');
-  assert.equal(carrierLabel(4), 'carrier no. 0004');
+  assert.equal(shareUrl({ origin: 'https://ticklemonster.com' }), 'https://ticklemonster.com/');
 });
 
-test('count wording', () => {
-  assert.equal(countLine(0), 'nobody has passed it on yet.');
-  assert.equal(countLine(1), '1 person has passed it on.');
-  assert.equal(countLine(12345), '12,345 people have passed it on.');
+test('your number and the live total', () => {
+  assert.deepEqual([1, 2, 3, 4, 11, 12, 13, 21, 22, 23, 101, 111, 1208].map(ordinal),
+    ['1st', '2nd', '3rd', '4th', '11th', '12th', '13th', '21st', '22nd', '23rd', '101st', '111th', '1,208th']);
+  assert.equal(yourLine(1208), 'you’re the 1,208th person to pass it on.');
+  assert.equal(totalLine(1), '1 person has it now.');
+  assert.equal(totalLine(1540), '1,540 people have it now.');
 });
 
 test('counter: reads, adds, and fails quietly', async () => {
