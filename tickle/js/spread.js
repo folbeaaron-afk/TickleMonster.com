@@ -8,12 +8,14 @@
  * stays "unwell" (a faint giggle now and then, the tab title laughing when
  * you look away) until the visitor passes it on.
  *
- * The total number of people who have passed it on is kept by a free,
- * public counter service (no accounts, no personal data: just one number).
- * If that service is unreachable the count simply isn't shown.
+ * The end screen also shows how many people have passed it on. Reaching
+ * STOP counts as passing it on (once per browser). The number is kept by a free public counter service (no accounts, no
+ * personal data: just one number). If that service is unreachable the
+ * count simply isn't shown.
  */
 
 const KEY = 'tm-ticklish-carrier';
+const STOPPED_KEY = 'tm-ticklish-stopped';
 
 /** The shared counter. Swap for your own endpoint any time. */
 export const COUNTER = Object.freeze({
@@ -26,7 +28,6 @@ export const COUNTER = Object.freeze({
  * @typedef {Object} Carrier
  * @property {number} gen      their place in the chain (1 = nobody sent it to them)
  * @property {boolean} shared  passed it on at least once
- * @property {boolean} counted already added to the worldwide count
  */
 
 /** The generation in an incoming link, or 0. @param {string} search */
@@ -40,7 +41,7 @@ export function incomingGeneration(search) {
 export function loadCarrier() {
   try {
     const v = JSON.parse(localStorage.getItem(KEY) || 'null');
-    if (v && typeof v.gen === 'number') return { gen: v.gen, shared: !!v.shared, counted: !!v.counted };
+    if (v && typeof v.gen === 'number') return { gen: v.gen, shared: !!v.shared };
   } catch {
     /* private mode or junk: treat as new */
   }
@@ -62,7 +63,7 @@ export function saveCarrier(c) {
  * @returns {Carrier}
  */
 export function infect(existing, incoming) {
-  return existing || { gen: incoming + 1, shared: false, counted: false };
+  return existing || { gen: incoming + 1, shared: false };
 }
 
 /** Is it still in them? @param {Carrier|null} c */
@@ -79,6 +80,23 @@ export function countLine(n) {
   if (n <= 0) return 'nobody has passed it on yet.';
   if (n === 1) return '1 person has passed it on.';
   return `${n.toLocaleString('en-US')} people have passed it on.`;
+}
+
+/** Has this browser already pressed STOP (and been counted)? */
+export function hasStopped() {
+  try {
+    return localStorage.getItem(STOPPED_KEY) === '1';
+  } catch {
+    return false;
+  }
+}
+
+export function markStopped() {
+  try {
+    localStorage.setItem(STOPPED_KEY, '1');
+  } catch {
+    /* fine */
+  }
 }
 
 /**

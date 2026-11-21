@@ -3,16 +3,17 @@
  * "They're Ticklish" — interactive piece for TICKLE MONSTER.
  * Wires input -> state machine -> hands / person / laugh / audio -> SVG.
  */
-import { createMachine } from './state.js?v=202611210910';
-import { Scene, PARTS } from './scene.js?v=202611210910';
-import { HandDirector } from './hands.js?v=202611210910';
-import { Person } from './person.js?v=202611210910';
-import { LaughDriver } from './laugh.js?v=202611210910';
-import { AudioEngine } from './audio.js?v=202611210910';
-import { stepNoise } from './util.js?v=202611210910';
+import { createMachine } from './state.js?v=202611210916';
+import { Scene, PARTS } from './scene.js?v=202611210916';
+import { HandDirector } from './hands.js?v=202611210916';
+import { Person } from './person.js?v=202611210916';
+import { LaughDriver } from './laugh.js?v=202611210916';
+import { AudioEngine } from './audio.js?v=202611210916';
+import { stepNoise } from './util.js?v=202611210916';
 import {
   incomingGeneration, loadCarrier, saveCarrier, infect, unwell, shareUrl, carrierLabel, countLine, counter,
-} from './spread.js?v=202611210910';
+  hasStopped, markStopped,
+} from './spread.js?v=202611210916';
 
 const SEED = 0x71c4;
 
@@ -207,17 +208,20 @@ function showCount(n) {
   countEl.hidden = false;
 }
 
-async function passedOn() {
+function passedOn() {
   if (!carrier) return;
-  const first = !carrier.counted;
-  carrier = { ...carrier, shared: true, counted: true };
+  carrier = { ...carrier, shared: true };
   saveCarrier(carrier);
   renderSpread();
   document.title = TITLE;
-  if (!first) return;
-  // add yourself right away, then confirm with the shared counter
-  if (lastCount !== null) showCount(lastCount + 1);
-  showCount(await counter('hit'));
+}
+
+/** Pressing STOP adds you to the worldwide count (once per browser). */
+let stopCount = /** @type {Promise<number|null>|null} */ (null);
+function countStop() {
+  if (hasStopped()) return;
+  markStopped();
+  stopCount = counter('hit');
 }
 
 copyBtn.addEventListener('click', async () => {
@@ -298,10 +302,12 @@ function onTransition(s, prev, now) {
         renderSpread();
         end.hidden = false;
         nextGiggle = now + 25;
-        counter('get').then(showCount);
+        // if this visit pressed STOP, show the number that includes them
+        (stopCount || counter('get')).then(showCount);
         copyBtn.focus({ preventScroll: true });
         break;
       case 'stopping':
+        countStop();
         stopBtn.classList.add('is-pressed');
         stopBtn.setAttribute('aria-disabled', 'true');
         setHeadline('');
@@ -338,6 +344,7 @@ function resetAll(now) {
   caption.classList.remove('is-on');
   caption.textContent = '';
   countEl.hidden = true;
+  stopCount = null;
   setHeadline(HEADLINES[0]);
   root.dataset.stage = '0';
   scene.setPose(person.drawPose());

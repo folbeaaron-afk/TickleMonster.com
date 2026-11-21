@@ -15,7 +15,7 @@ test('generation comes from the link, safely', () => {
 
 test('becoming a carrier and passing it on', () => {
   const c = infect(null, 3);
-  assert.deepEqual(c, { gen: 4, shared: false, counted: false });
+  assert.deepEqual(c, { gen: 4, shared: false });
   assert.equal(unwell(c), true);
   assert.equal(infect(c, 9), c, 'already a carrier keeps their place in the chain');
   assert.equal(unwell({ ...c, shared: true }), false);
