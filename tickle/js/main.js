@@ -3,17 +3,17 @@
  * "They're Ticklish" — interactive piece for TICKLE MONSTER.
  * Wires input -> state machine -> hands / person / laugh / audio -> SVG.
  */
-import { createMachine } from './state.js?v=202611211020';
-import { Scene, PARTS } from './scene.js?v=202611211020';
-import { HandDirector } from './hands.js?v=202611211020';
-import { Person } from './person.js?v=202611211020';
-import { LaughDriver } from './laugh.js?v=202611211020';
-import { AudioEngine } from './audio.js?v=202611211020';
-import { stepNoise } from './util.js?v=202611211020';
+import { createMachine } from './state.js?v=202611222139';
+import { Scene, PARTS } from './scene.js?v=202611222139';
+import { HandDirector } from './hands.js?v=202611222139';
+import { Person } from './person.js?v=202611222139';
+import { LaughDriver } from './laugh.js?v=202611222139';
+import { AudioEngine } from './audio.js?v=202611222139';
+import { stepNoise } from './util.js?v=202611222139';
 import {
   incomingGeneration, loadCarrier, saveCarrier, infect, unwell, shareUrl, counter,
-  markStopped, yourLine, totalLine, loadNumber, saveNumber, loadTotal, saveTotal,
-} from './spread.js?v=202611211020';
+  markStopped, totalLine, loadNumber, saveNumber, loadTotal, saveTotal,
+} from './spread.js?v=202611222139';
 
 const SEED = 0x71c4;
 
@@ -274,17 +274,14 @@ counter('get').then(noteTotal);
 
 async function showNumbers() {
   let mine = loadNumber();
+  // one number: everyone who has reached STOP, you included
   const render = () => {
-    if (mine) {
-      yourEl.textContent = yourLine(mine);
+    const total = Math.max(knownTotal || 0, mine || 0);
+    if (total > 0) {
+      yourEl.textContent = totalLine(total);
       yourEl.hidden = false;
     }
-    if (knownTotal !== null && (!mine || knownTotal > mine)) {
-      countEl.textContent = totalLine(knownTotal);
-      countEl.hidden = false;
-    } else {
-      countEl.hidden = true; // never show a total smaller than your own number
-    }
+    countEl.hidden = true;
   };
   if (stopCount && !mine) {
     yourEl.textContent = 'counting…';
@@ -296,8 +293,8 @@ async function showNumbers() {
     if (n) {
       mine = n;
       noteTotal(n);
-    } else if (!mine) {
-      yourEl.hidden = true; // couldn't get a number this time; try again next STOP
+    } else if (!mine && !knownTotal) {
+      yourEl.hidden = true; // couldn't reach the counter; try again next STOP
     }
     render();
   }

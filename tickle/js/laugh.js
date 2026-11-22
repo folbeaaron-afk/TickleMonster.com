@@ -4,7 +4,7 @@
  * mouth, so the face laughs in time with the sound, and still laughs when
  * the sound is off.
  */
-import { mulberry32, clamp } from './util.js?v=202611211020';
+import { mulberry32, clamp } from './util.js?v=202611222139';
 
 /**
  * @typedef {Object} Syllable
